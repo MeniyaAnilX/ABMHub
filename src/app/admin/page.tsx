@@ -648,6 +648,8 @@ export default function AdminPage() {
           </button>
         </section>
 
+        {adminSection === "airdrop" ? (
+          <>
         <form onSubmit={saveProject} className="glass mb-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 flex items-center gap-2">
             <Plus size={18} className="text-cyan-300" />
@@ -822,8 +824,11 @@ export default function AdminPage() {
             ))}
           </div>
         </section>
+          </>
+        ) : null}
 
-
+        {adminSection === "gaming" ? (
+          <>
         <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4">
             <h2 className="text-lg font-extrabold tracking-tight">Gaming Section Settings</h2>

@@ -41,7 +41,7 @@ export function Header({ showAuth = false, userEmail, onOpenAuth, onLogout }: He
           </div>
           <div>
             <b className="block text-lg leading-none tracking-tight max-sm:text-base">ABM Hub</b>
-            <span className="block text-[11px] text-slate-400 max-[380px]:text-[9px]">Airdrop • Trading • Gaming</span>
+            <span className="block text-[11px] text-slate-400 max-[380px]:text-[9px]">Airdrop • Trading</span>
           </div>
         </Link>
 

@@ -34,7 +34,23 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-\nnode_modules/\ndist/\n.env.local\n.env.*.local\n.vercel/\nconfig.txt\n*.log\n*.bat\n*.sql\nABMFIX_*.md\nREADME.md\nREADME_ABMHUB.md\nGITHUB_CLEAN_CHECKLIST.txt\nnode_modules/
+node_modules/
+dist/
+.env.local
+.env.*.local
+.vercel/
+config.txt
+*.log
+*.bat
+*.sql
+ABMFIX_*.md
+README.md
+README_ABMHUB.md
+GITHUB_CLEAN_CHECKLIST.txt
+_abmhub_push_backup_*/
+_abmhub_safe_backup_*/
+ABMHub_push_log.txt
+node_modules/
 .next/
 out/
 dist/
@@ -49,9 +65,8 @@ config.txt
 *.bat
 *.sql
 ABMFIX_*.md
-GITHUB_CLEAN_CHECKLIST.txt
-node_modules/
 README_ABMHUB.md
+GITHUB_CLEAN_CHECKLIST.txt
 _abmhub_push_backup_*/
 _abmhub_safe_backup_*/
 ABMHub_push_log.txt

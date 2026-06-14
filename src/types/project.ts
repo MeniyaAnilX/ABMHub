@@ -39,6 +39,7 @@ export type Project = {
   backed_by: string;
   discord_url: string | null;
   website_url: string | null;
+  claim_airdrop_url: string | null;
   quest_url: string | null;
   logo_url: string | null;
   category: Category;

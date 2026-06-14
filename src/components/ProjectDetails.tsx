@@ -1,5 +1,5 @@
 import type { Project } from "@/types/project";
-import { ExternalLink, Globe, MessageCircle, Trophy, X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
 
 type ProjectDetailsProps = {
@@ -103,28 +103,37 @@ function faviconUrl(domain: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 }
 
+function domainFromUrl(url: string, fallbackDomain: string) {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return fallbackDomain;
+  }
+}
+
 function getQuestIconUrl(platform: string, url: string) {
   if (platform === "Galxe") return faviconUrl("galxe.com");
   if (platform === "Zealy") return faviconUrl("zealy.io");
   if (platform === "Guild") return faviconUrl("guild.xyz");
 
-  try {
-    const hostname = new URL(url).hostname.replace("www.", "");
-    return faviconUrl(hostname);
-  } catch {
-    return faviconUrl("abmhub.xyz");
-  }
+  return faviconUrl(domainFromUrl(url, "abmhub.xyz"));
 }
 
-function QuestBrandIcon({ platform, url }: { platform: string; url: string }) {
-  const iconUrl = getQuestIconUrl(platform, url);
-
+function BrandIcon({ src, label }: { src: string; label: string }) {
   return (
     <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={iconUrl} alt={`${platform} logo`} className="h-4 w-4 object-contain" loading="lazy" />
+      <img src={src} alt={`${label} logo`} className="h-4 w-4 object-contain" loading="lazy" />
     </span>
   );
+}
+
+function QuestBrandIcon({ platform, url }: { platform: string; url: string }) {
+  return <BrandIcon src={getQuestIconUrl(platform, url)} label={platform} />;
+}
+
+function LinkBrandIcon({ url, label, fallbackDomain }: { url: string; label: string; fallbackDomain: string }) {
+  return <BrandIcon src={faviconUrl(domainFromUrl(url, fallbackDomain))} label={label} />;
 }
 
 function DetailBox({
@@ -205,21 +214,28 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
             <h3 className="mb-4 text-base font-extrabold tracking-tight">Official Links</h3>
             <div className="grid gap-3">
               <a href={xUrl} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
-                <ExternalLink size={16} />
-                Open X
+                <BrandIcon src={faviconUrl("x.com")} label="X" />
+                Follow on X
               </a>
 
               {project.discord_url ? (
                 <a href={project.discord_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
-                  <MessageCircle size={16} />
+                  <BrandIcon src={faviconUrl("discord.com")} label="Discord" />
                   Join Discord
                 </a>
               ) : null}
 
               {project.website_url ? (
                 <a href={project.website_url} target="_blank" rel="noreferrer" className="btn justify-start">
-                  <Globe size={16} />
+                  <LinkBrandIcon url={project.website_url} label="Website" fallbackDomain="abmhub.xyz" />
                   Visit Website
+                </a>
+              ) : null}
+
+              {project.claim_airdrop_url ? (
+                <a href={project.claim_airdrop_url} target="_blank" rel="noreferrer" className="btn justify-start">
+                  <LinkBrandIcon url={project.claim_airdrop_url} label="Claim Airdrop" fallbackDomain="abmhub.xyz" />
+                  Claim Airdrop
                 </a>
               ) : null}
             </div>

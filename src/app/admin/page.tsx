@@ -22,6 +22,7 @@ type FormState = {
   backed_by: string;
   discord_url: string;
   website_url: string;
+  claim_airdrop_url: string;
   logo_url: string;
   category: Category;
   phase: ProjectPhase;
@@ -43,6 +44,7 @@ const emptyForm: FormState = {
   backed_by: "",
   discord_url: "",
   website_url: "",
+  claim_airdrop_url: "",
   logo_url: "",
   category: "DeFi",
   phase: "Testnet",
@@ -218,6 +220,7 @@ export default function AdminPage() {
       backed_by: project.backed_by,
       discord_url: project.discord_url || "",
       website_url: project.website_url || "",
+      claim_airdrop_url: project.claim_airdrop_url || "",
       logo_url: project.logo_url || "",
       category: project.category,
       phase: project.phase,
@@ -269,6 +272,7 @@ export default function AdminPage() {
       backed_by: form.backed_by.trim(),
       discord_url: form.discord_url.trim() || null,
       website_url: form.website_url.trim() || null,
+      claim_airdrop_url: form.claim_airdrop_url.trim() || null,
       quest_url: primaryQuest?.url || null,
       logo_url: form.logo_url.trim() || null,
       category: form.category,
@@ -437,7 +441,12 @@ export default function AdminPage() {
 
             <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
               Website URL
-              <input className="form-field" value={form.website_url} onChange={(e) => updateForm("website_url", e.target.value)} />
+              <input className="form-field" value={form.website_url} onChange={(e) => updateForm("website_url", e.target.value)} placeholder="https://project.xyz" />
+            </label>
+
+            <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
+              Claim Airdrop URL
+              <input className="form-field" value={form.claim_airdrop_url} onChange={(e) => updateForm("claim_airdrop_url", e.target.value)} placeholder="https://project.xyz/claim" />
             </label>
 
             <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">

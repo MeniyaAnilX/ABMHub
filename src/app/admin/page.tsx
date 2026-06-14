@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Toast } from "@/components/Toast";
@@ -92,6 +92,7 @@ export default function AdminPage() {
   const [toast, setToast] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [saving, setSaving] = useState(false);
+  const tasksRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -160,6 +161,29 @@ export default function AdminPage() {
   function updateForm<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
+
+  function formatTaskText(startTag: string, endTag: string) {
+    const textarea = tasksRef.current;
+    const value = form.tasks;
+    const start = textarea?.selectionStart ?? value.length;
+    const end = textarea?.selectionEnd ?? value.length;
+    const selectedText = value.slice(start, end) || "your text";
+    const nextValue = value.slice(0, start) + startTag + selectedText + endTag + value.slice(end);
+
+    updateForm("tasks", nextValue);
+
+    window.setTimeout(() => {
+      const currentTextarea = tasksRef.current;
+      if (!currentTextarea) return;
+
+      const selectionStart = start + startTag.length;
+      const selectionEnd = selectionStart + selectedText.length;
+
+      currentTextarea.focus();
+      currentTextarea.setSelectionRange(selectionStart, selectionEnd);
+    }, 0);
+  }
+
 
   function editProject(project: Project) {
     const questUrls = getQuestUrls(project);
@@ -420,10 +444,44 @@ export default function AdminPage() {
               <textarea className="form-field min-h-[90px]" value={form.summary} onChange={(e) => updateForm("summary", e.target.value)} />
             </label>
 
-            <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
-              Tasks, one per line
-              <textarea className="form-field min-h-[110px]" value={form.tasks} onChange={(e) => updateForm("tasks", e.target.value)} />
-            </label>
+            <div className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span>Tasks, one per line</span>
+                <span className="text-xs text-slate-500">Select text, then click style button</span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/10 p-2">
+                <button type="button" className="rounded-xl border border-white/10 bg-white/[.05] px-3 py-2 text-xs font-extrabold text-white hover:bg-white/10" onClick={() => formatTaskText("**", "**")}>
+                  Bold
+                </button>
+                <button type="button" className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs font-extrabold text-cyan-200 hover:bg-cyan-400/15" onClick={() => formatTaskText("[cyan]", "[/cyan]")}>
+                  Cyan
+                </button>
+                <button type="button" className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-extrabold text-emerald-200 hover:bg-emerald-400/15" onClick={() => formatTaskText("[green]", "[/green]")}>
+                  Green
+                </button>
+                <button type="button" className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs font-extrabold text-amber-200 hover:bg-amber-400/15" onClick={() => formatTaskText("[yellow]", "[/yellow]")}>
+                  Yellow
+                </button>
+                <button type="button" className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs font-extrabold text-red-200 hover:bg-red-400/15" onClick={() => formatTaskText("[red]", "[/red]")}>
+                  Red
+                </button>
+                <button type="button" className="rounded-xl border border-blue-400/20 bg-blue-400/10 px-3 py-2 text-xs font-extrabold text-blue-200 hover:bg-blue-400/15" onClick={() => formatTaskText("[blue]", "[/blue]")}>
+                  Blue
+                </button>
+              </div>
+
+              <textarea
+                ref={tasksRef}
+                className="form-field min-h-[220px]"
+                value={form.tasks}
+                onChange={(e) => updateForm("tasks", e.target.value)}
+              />
+
+              <div className="text-xs leading-5 text-slate-500">
+                Supported: <b>**bold**</b>, [cyan]text[/cyan], [green]text[/green], [yellow]text[/yellow], [red]text[/red], [blue]text[/blue].
+              </div>
+            </div>
           </div>
 
           <div className="mt-5 flex gap-3 max-sm:flex-col">

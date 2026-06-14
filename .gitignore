@@ -50,3 +50,8 @@ config.txt
 *.sql
 ABMFIX_*.md
 GITHUB_CLEAN_CHECKLIST.txt
+node_modules/
+README_ABMHUB.md
+_abmhub_push_backup_*/
+_abmhub_safe_backup_*/
+ABMHub_push_log.txt

@@ -93,7 +93,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
 
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h3 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h3>
-              <div className="text-sm leading-7 text-slate-300 whitespace-pre-line">
+              <div className="text-sm leading-7 text-slate-300 whitespace-pre-wrap">
                 {(project.tasks && project.tasks.length ? project.tasks.join("\n") : "No tasks added yet.")}
               </div>
             </div>

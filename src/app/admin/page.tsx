@@ -38,6 +38,7 @@ type GamingSettings = {
   offerwall_url: string | null;
   cpalead_offerwall_url: string | null;
   torox_offerwall_url: string | null;
+  cpalead_points_per_usd: number;
   updated_at: string;
 };
 
@@ -162,7 +163,7 @@ export default function AdminPage() {
   const [redemptionFilter, setRedemptionFilter] = useState<RedemptionFilter>("pending");
   const [redemptions, setRedemptions] = useState<GamingRedemption[]>([]);
   const [redemptionCodes, setRedemptionCodes] = useState<Record<string, string>>({});
-  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, offerwall_url: "", cpalead_offerwall_url: "", torox_offerwall_url: "", updated_at: "" });
+  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, offerwall_url: "", cpalead_offerwall_url: "", torox_offerwall_url: "", cpalead_points_per_usd: 3000, updated_at: "" });
   const [gamingLedger, setGamingLedger] = useState<GamingLedger[]>([]);
   const [gamingUsers, setGamingUsers] = useState<GamingUser[]>([]);
   const [gamingSearch, setGamingSearch] = useState("");
@@ -255,6 +256,7 @@ export default function AdminPage() {
         offerwall_url: gamingSettings.offerwall_url?.trim() || "",
         cpalead_offerwall_url: gamingSettings.cpalead_offerwall_url?.trim() || "",
         torox_offerwall_url: gamingSettings.torox_offerwall_url?.trim() || "",
+        cpalead_points_per_usd: Math.max(1, Math.floor(Number(gamingSettings.cpalead_points_per_usd || 3000))),
         updated_at: new Date().toISOString(),
       }, { onConflict: "id" });
 
@@ -739,6 +741,8 @@ export default function AdminPage() {
     return filteredLedger.filter((item) => item.status === "pending" && Number(item.points || 0) > 0);
   }, [filteredLedger]);
 
+  const cpaleadPostbackUrl = "https://www.abmhub.xyz/api/postback/cpalead?subid={subid}&lead_id={lead_id}&campaign_id={campaign_id}&campaign_name={campaign_name}&payout={payout}&password={password}";
+
   if (checkingAuth) {
     return (
       <>
@@ -966,7 +970,7 @@ export default function AdminPage() {
           </div>
 
           <div className="grid gap-3">
-            <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+            <div className="grid gap-3 md:grid-cols-[1fr_180px_220px]">
               <label className="grid gap-2 text-sm text-slate-300">
                 Daily YouTube Short URL
                 <input
@@ -987,6 +991,17 @@ export default function AdminPage() {
                   onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_reward_points: Number(event.target.value || 10) }))}
                 />
               </label>
+
+              <label className="grid gap-2 text-sm text-slate-300">
+                CPAlead Points Per $1
+                <input
+                  className="form-field"
+                  type="number"
+                  min="1"
+                  value={gamingSettings.cpalead_points_per_usd || 3000}
+                  onChange={(event) => setGamingSettings((current) => ({ ...current, cpalead_points_per_usd: Number(event.target.value || 3000) }))}
+                />
+              </label>
             </div>
 
             <label className="grid gap-2 text-sm text-slate-300">
@@ -995,12 +1010,12 @@ export default function AdminPage() {
                 className="form-field"
                 value={gamingSettings.offerwall_url || ""}
                 onChange={(event) => setGamingSettings((current) => ({ ...current, offerwall_url: event.target.value }))}
-                placeholder="Paste CPAlead or Torox offerwall URL. Use USER_ID or SUBID placeholder."
+                placeholder="Paste CPAlead or Torox offerwall URL. Example: https://www.qckclk.com/wall/Q5rwH?subid={USER_ID}"
               />
             </label>
 
             <div className="rounded-2xl border border-blue-400/15 bg-blue-400/10 p-3 text-xs leading-5 text-blue-100/75">
-              Use only one active offerwall here. You can replace CPAlead with Torox anytime. Example: https://www.qckclk.com/wall/Q5rwH?subid=USER_ID
+              Use one active offerwall here. For CPAlead use subid placeholder: <b>{"{USER_ID}"}</b>. Postback URL: <span className="break-all">{cpaleadPostbackUrl}</span>
             </div>
 
             <button type="button" className="btn w-full" onClick={saveGamingSettings}>Save Gaming Settings</button>

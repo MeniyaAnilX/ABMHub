@@ -552,3 +552,8 @@ iframe[title="ABM Hub Offerwall"] {
   border-radius: 1rem;
   padding: 1rem;
 }
+\n
+/* ABMHub v48: CPAlead postback helper */
+.postback-url-box {
+  overflow-wrap: anywhere;
+}

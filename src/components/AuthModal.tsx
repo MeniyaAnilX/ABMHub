@@ -12,6 +12,8 @@ type AuthModalProps = {
   onSuccess?: () => void;
 };
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.abmhub.xyz").replace(/\/$/, "");
+
 export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>("signup");
   const [email, setEmail] = useState("");
@@ -26,15 +28,21 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
     setBusy(true);
     setMessage("");
 
-    const payload = {
-      email: email.trim(),
-      password,
-    };
+    const cleanEmail = email.trim();
 
     const result =
       mode === "signup"
-        ? await supabase.auth.signUp(payload)
-        : await supabase.auth.signInWithPassword(payload);
+        ? await supabase.auth.signUp({
+            email: cleanEmail,
+            password,
+            options: {
+              emailRedirectTo: SITE_URL,
+            },
+          })
+        : await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password,
+          });
 
     setBusy(false);
 

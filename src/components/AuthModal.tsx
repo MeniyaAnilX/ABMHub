@@ -15,13 +15,13 @@ type AuthModalProps = {
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.abmhub.xyz").replace(/\/$/, "");
 
-function parseAuthError(message: string) {
+function parseAuthError(message: string, mode: AuthMode) {
   const lower = message.toLowerCase();
 
   if (lower.includes("email rate limit") || lower.includes("rate limit")) {
     return {
       type: "error" as MessageType,
-      text: "Email limit reached. Try again later. Existing users can still login with email and password.",
+      text: "Email limit reached. Try again later.",
     };
   }
 
@@ -35,7 +35,7 @@ function parseAuthError(message: string) {
   if (lower.includes("invalid login credentials")) {
     return {
       type: "invalid" as MessageType,
-      text: "Password incorrect. Check your password. If this email is new, create an account.",
+      text: mode === "login" ? "Email or password incorrect." : "Signup failed. Please check your details.",
     };
   }
 
@@ -93,7 +93,7 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
       setBusy(false);
 
       if (error) {
-        setMessage(parseAuthError(error.message));
+        setMessage(parseAuthError(error.message, "login"));
         return;
       }
 
@@ -115,7 +115,7 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
     setBusy(false);
 
     if (error) {
-      const parsed = parseAuthError(error.message);
+      const parsed = parseAuthError(error.message, "signup");
       setMessage(parsed);
 
       if (parsed.type === "already") {
@@ -222,27 +222,7 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
                     : "border-cyan-500/20 bg-cyan-500/10 text-cyan-100"
               }`}
             >
-              <div>{message.text}</div>
-
-              {message.type === "invalid" ? (
-                <button
-                  type="button"
-                  className="mt-3 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-extrabold text-white hover:bg-white/15"
-                  onClick={() => switchMode("signup")}
-                >
-                  Create account instead
-                </button>
-              ) : null}
-
-              {message.type === "already" ? (
-                <button
-                  type="button"
-                  className="mt-3 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-extrabold text-white hover:bg-white/15"
-                  onClick={() => switchMode("login")}
-                >
-                  Go to login
-                </button>
-              ) : null}
+              {message.text}
             </div>
           ) : null}
 

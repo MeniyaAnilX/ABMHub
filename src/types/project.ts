@@ -1,20 +1,40 @@
 export type ProjectStatus = "Live" | "Trending" | "Ended";
 export type ProjectPhase = "Testnet" | "Mainnet" | "Both" | "Waitlist";
 export type QuestPlatform = "Galxe" | "Zealy" | "Guild" | "Portal" | "None";
-export type Chain = "Ethereum" | "Optimism" | "Arbitrum" | "Base" | "Solana" | "Sui" | "Other";
+export type Chain =
+  | "Ethereum"
+  | "Optimism"
+  | "Arbitrum"
+  | "Base"
+  | "Solana"
+  | "Sui"
+  | "Bitcoin"
+  | "Canton Network"
+  | "Hyperliquid"
+  | "Multi"
+  | "Polygon"
+  | "BNB Chain"
+  | "Avalanche"
+  | "Other";
 export type Cost = "Free" | "Low Gas" | "Paid";
 export type Category =
   | "DeFi"
+  | "AI"
+  | "Layer 2"
+  | "Gaming"
+  | "SocialFi"
+  | "Infra"
+  | "Wallet"
+  | "NFT"
+  | "Bridge"
+  | "Restaking"
+  | "RWA"
+  | "Other"
   | "L1"
   | "L2"
-  | "Bridge"
   | "ZK"
   | "DEX"
-  | "Lending"
-  | "Infra"
-  | "NFT"
-  | "Gaming"
-  | "AI";
+  | "Lending";
 
 export type QuestLink = {
   platform: Exclude<QuestPlatform, "None">;

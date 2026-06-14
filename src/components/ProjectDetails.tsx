@@ -16,6 +16,16 @@ function initials(name: string) {
   return name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
 }
 
+function statusClass(status: string) {
+  const text = status.toLowerCase();
+
+  if (text === "ended") return "text-red-300";
+  if (text === "trending") return "text-blue-300";
+  if (text === "live" || text === "active") return "text-emerald-300";
+
+  return "text-white";
+}
+
 const richTags = [
   { open: "**", close: "**", className: "font-extrabold text-white" },
   { open: "[cyan]", close: "[/cyan]", className: "font-semibold text-cyan-300" },
@@ -203,7 +213,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
               <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
               <DetailBox label="Backed by" value={project.backed_by} />
               <DetailBox label="Phase" value={project.phase} />
-              <DetailBox label="Status" value={project.status} />
+              <DetailBox label="Status" value={<span className={statusClass(project.status)}>{project.status}</span>} />
               <DetailBox label="Quest" value={questLabel} />
               <DetailBox label="Chain" value={project.chain} />
               <DetailBox label="Cost" value={project.cost} />

@@ -9,7 +9,7 @@ import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
-import { CheckCircle2, Clock3, Coins, Gamepad2, Gift, Heart, LineChart, Rocket, Search, ShieldCheck, Star, Trophy } from "lucide-react";
+import { CheckCircle2, Clock3, Coins, Gamepad2, Gift, Heart, LineChart, Rocket, Search, ShieldCheck, Star, Trophy, Youtube } from "lucide-react";
 
 type SortMode = "newest" | "az" | "funding";
 type Section = "airdrop" | "trading" | "gaming";
@@ -40,13 +40,16 @@ type GamingRedemption = {
   updated_at: string;
 };
 
-const redeemOptions = [
-  { name: "₹10 Google Play Gift Card", cost: 1000 },
-  { name: "₹20 Google Play Gift Card", cost: 2000 },
-];
+type GamingSettings = {
+  id: string;
+  youtube_short_url: string | null;
+  youtube_reward_points: number;
+  updated_at: string;
+};
 
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+function formatInrFromPoints(points: number) {
+  const value = points / 100;
+  return Number.isInteger(value) ? `₹${value}` : `₹${value.toFixed(2)}`;
 }
 
 export default function PublicHomePage() {
@@ -64,6 +67,9 @@ export default function PublicHomePage() {
   const [toast, setToast] = useState("");
   const [gamingLedger, setGamingLedger] = useState<GamingLedger[]>([]);
   const [gamingRedemptions, setGamingRedemptions] = useState<GamingRedemption[]>([]);
+  const [gamingSettings, setGamingSettings] = useState<GamingSettings | null>(null);
+  const [serverTodayKey, setServerTodayKey] = useState("");
+  const [redeemPoints, setRedeemPoints] = useState("1000");
   const [gamingBusy, setGamingBusy] = useState("");
   const modalHistoryActiveRef = useRef(false);
 
@@ -125,8 +131,24 @@ export default function PublicHomePage() {
     }
   }
 
+  async function loadGamingSettings() {
+    const [{ data: settingsData }, { data: dateData }] = await Promise.all([
+      supabase.from("gaming_settings").select("*").eq("id", "main").maybeSingle(),
+      supabase.rpc("get_ist_today_key"),
+    ]);
+
+    if (settingsData) {
+      setGamingSettings(settingsData as GamingSettings);
+    }
+
+    if (dateData) {
+      setServerTodayKey(String(dateData));
+    }
+  }
+
   useEffect(() => {
     loadProjects();
+    loadGamingSettings();
 
     supabase.auth.getSession().then(({ data }) => {
       const currentUser = data.session?.user || null;
@@ -166,6 +188,9 @@ export default function PublicHomePage() {
         supabase.auth.getSession().then(({ data }) => {
           if (data.session?.user) loadGamingData(data.session.user.id);
         });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gaming_settings" }, () => {
+        loadGamingSettings();
       })
       .subscribe();
 
@@ -269,45 +294,82 @@ export default function PublicHomePage() {
     showToast("Added to favorites");
   }
 
-  async function claimGamingTask(source: string, points: number, note: string) {
+  async function claimDailyCheckin() {
     if (!user) {
       setAuthOpen(true);
       showToast("Login to earn gaming points.");
       return;
     }
 
-    const taskKey = `${source}-${user.id}-${todayKey()}`;
-    setGamingBusy(source);
+    setGamingBusy("daily_checkin");
 
-    const { error } = await supabase.from("gaming_points_ledger").insert({
-      user_id: user.id,
-      user_email: user.email || null,
-      points,
-      source,
-      task_key: taskKey,
-      status: "approved",
-      note,
-    });
-
+    const { data, error } = await supabase.rpc("claim_daily_checkin");
     setGamingBusy("");
 
     if (error) {
-      if (error.message.toLowerCase().includes("duplicate") || error.code === "23505") {
-        showToast("Already claimed today.");
-      } else {
-        showToast(error.message);
-      }
+      showToast(error.message);
       return;
     }
 
-    showToast(`+${points} points added`);
-    await loadGamingData(user.id);
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (result?.already_claimed) {
+      showToast("Already claimed today.");
+    } else {
+      showToast(`+${result?.points_awarded || 2} points added`);
+    }
+
+    await Promise.all([loadGamingData(user.id), loadGamingSettings()]);
   }
 
-  async function requestRedeem(rewardName: string, pointsCost: number, availablePoints: number) {
+  async function claimYouTubeShort() {
+    if (!user) {
+      setAuthOpen(true);
+      showToast("Login to earn gaming points.");
+      return;
+    }
+
+    const shortUrl = gamingSettings?.youtube_short_url?.trim();
+
+    if (!shortUrl) {
+      showToast("YouTube Short link not available yet.");
+      return;
+    }
+
+    window.open(shortUrl, "_blank", "noopener,noreferrer");
+
+    setGamingBusy("youtube_short");
+
+    const { data, error } = await supabase.rpc("claim_youtube_short");
+    setGamingBusy("");
+
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (result?.already_claimed) {
+      showToast("Already claimed YouTube Short today.");
+    } else {
+      showToast(`+${result?.points_awarded || gamingSettings?.youtube_reward_points || 10} points added`);
+    }
+
+    await Promise.all([loadGamingData(user.id), loadGamingSettings()]);
+  }
+
+  async function requestRedeem(availablePoints: number) {
     if (!user) {
       setAuthOpen(true);
       showToast("Login to redeem points.");
+      return;
+    }
+
+    const pointsCost = Math.floor(Number(redeemPoints || 0));
+
+    if (!Number.isFinite(pointsCost) || pointsCost < 1000) {
+      showToast("Minimum redeem is 1000 points.");
       return;
     }
 
@@ -316,7 +378,9 @@ export default function PublicHomePage() {
       return;
     }
 
-    setGamingBusy(`redeem-${pointsCost}`);
+    const rewardName = `${formatInrFromPoints(pointsCost)} Google Play Gift Card`;
+
+    setGamingBusy("custom_redeem");
 
     const { error } = await supabase.from("gaming_redemptions").insert({
       user_id: user.id,
@@ -389,9 +453,9 @@ export default function PublicHomePage() {
     };
   }, [gamingLedger, gamingRedemptions]);
 
-  function hasClaimedToday(source: string) {
-    if (!user) return false;
-    const key = `${source}-${user.id}-${todayKey()}`;
+  function hasClaimedServerToday(source: string) {
+    if (!user || !serverTodayKey) return false;
+    const key = `${source}-${user.id}-${serverTodayKey}`;
     return gamingLedger.some((item) => item.task_key === key);
   }
 
@@ -570,11 +634,11 @@ export default function PublicHomePage() {
                       </div>
                       <button
                         className="btn max-sm:w-full"
-                        disabled={!user || gamingBusy === "daily_checkin" || hasClaimedToday("daily_checkin")}
-                        onClick={() => claimGamingTask("daily_checkin", 2, "Daily gaming check-in")}
+                        disabled={!user || gamingBusy === "daily_checkin" || hasClaimedServerToday("daily_checkin")}
+                        onClick={claimDailyCheckin}
                       >
                         <CheckCircle2 size={16} />
-                        {hasClaimedToday("daily_checkin") ? "Claimed" : "+2 Points"}
+                        {hasClaimedServerToday("daily_checkin") ? "Claimed" : "+2 Points"}
                       </button>
                     </div>
                   </div>
@@ -582,16 +646,26 @@ export default function PublicHomePage() {
                   <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
                     <div className="flex items-start justify-between gap-4 max-sm:flex-col">
                       <div>
-                        <h3 className="font-extrabold">Daily Gaming Quiz</h3>
-                        <p className="mt-1 text-sm text-slate-400">MVP quiz reward. Later we can add real Free Fire quiz questions.</p>
+                        <h3 className="font-extrabold">Daily YouTube Short</h3>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Watch today&apos;s ABM short and claim daily points. Link resets by Supabase IST date.
+                        </p>
+                        {gamingSettings?.youtube_short_url ? (
+                          <a href={gamingSettings.youtube_short_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-red-300 hover:underline">
+                            <Youtube size={14} />
+                            Open today&apos;s short
+                          </a>
+                        ) : (
+                          <p className="mt-2 text-xs text-amber-300">Admin has not added today&apos;s short yet.</p>
+                        )}
                       </div>
                       <button
                         className="btn max-sm:w-full"
-                        disabled={!user || gamingBusy === "daily_quiz" || hasClaimedToday("daily_quiz")}
-                        onClick={() => claimGamingTask("daily_quiz", 5, "Daily gaming quiz")}
+                        disabled={!user || !gamingSettings?.youtube_short_url || gamingBusy === "youtube_short" || hasClaimedServerToday("youtube_short")}
+                        onClick={claimYouTubeShort}
                       >
-                        <CheckCircle2 size={16} />
-                        {hasClaimedToday("daily_quiz") ? "Claimed" : "+5 Points"}
+                        <Youtube size={16} />
+                        {hasClaimedServerToday("youtube_short") ? "Claimed" : `Watch +${gamingSettings?.youtube_reward_points || 10} Points`}
                       </button>
                     </div>
                   </div>
@@ -627,27 +701,41 @@ export default function PublicHomePage() {
                   Redeem Store
                 </h2>
 
-                <div className="grid gap-3">
-                  {redeemOptions.map((reward) => (
-                    <div key={reward.cost} className="rounded-2xl border border-white/10 bg-black/15 p-4">
-                      <div className="mb-3 flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="font-extrabold">{reward.name}</h3>
-                          <p className="text-sm text-slate-400">{reward.cost} approved points</p>
-                        </div>
-                        <span className="rounded-lg border border-purple-400/20 bg-purple-400/10 px-2 py-1 text-xs font-extrabold text-purple-200">
-                          Gift Card
-                        </span>
-                      </div>
-                      <button
-                        className="btn w-full"
-                        disabled={!user || gamingBusy === `redeem-${reward.cost}` || gamingStats.availablePoints < reward.cost}
-                        onClick={() => requestRedeem(reward.name, reward.cost, gamingStats.availablePoints)}
-                      >
-                        Request Redeem
-                      </button>
+                <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-extrabold">Google Play Gift Card</h3>
+                      <p className="text-sm text-slate-400">100 points = ₹1. Minimum redeem: 1000 points.</p>
                     </div>
-                  ))}
+                    <span className="rounded-lg border border-purple-400/20 bg-purple-400/10 px-2 py-1 text-xs font-extrabold text-purple-200">
+                      Custom Amount
+                    </span>
+                  </div>
+
+                  <label className="mb-3 grid gap-2 text-sm text-slate-300">
+                    Enter points to redeem
+                    <input
+                      className="form-field"
+                      type="number"
+                      min="1000"
+                      step="100"
+                      value={redeemPoints}
+                      onChange={(event) => setRedeemPoints(event.target.value)}
+                      placeholder="1000"
+                    />
+                  </label>
+
+                  <div className="mb-3 rounded-xl border border-white/10 bg-white/[.03] p-3 text-sm text-slate-400">
+                    Gift card value: <b className="text-white">{formatInrFromPoints(Math.max(0, Number(redeemPoints || 0)))}</b>
+                  </div>
+
+                  <button
+                    className="btn w-full"
+                    disabled={!user || gamingBusy === "custom_redeem" || Number(redeemPoints || 0) < 1000 || gamingStats.availablePoints < Number(redeemPoints || 0)}
+                    onClick={() => requestRedeem(gamingStats.availablePoints)}
+                  >
+                    Request Redeem
+                  </button>
                 </div>
 
                 <div className="mt-5">

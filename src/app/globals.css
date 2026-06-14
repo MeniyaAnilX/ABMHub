@@ -507,3 +507,15 @@ button:disabled,
   border-radius: 1rem;
   padding: 1rem;
 }
+
+
+/* ABMHub v40 Gaming daily YouTube + custom redeem */
+input[type="number"].form-field {
+  appearance: textfield;
+}
+
+input[type="number"].form-field::-webkit-outer-spin-button,
+input[type="number"].form-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

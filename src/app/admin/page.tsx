@@ -28,6 +28,13 @@ type GamingRedemption = {
   updated_at: string;
 };
 
+type GamingSettings = {
+  id: string;
+  youtube_short_url: string | null;
+  youtube_reward_points: number;
+  updated_at: string;
+};
+
 type FormState = {
   id?: string;
   project_name: string;
@@ -110,6 +117,7 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [redemptions, setRedemptions] = useState<GamingRedemption[]>([]);
   const [redemptionCodes, setRedemptionCodes] = useState<Record<string, string>>({});
+  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, updated_at: "" });
   const tasksRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -143,6 +151,7 @@ export default function AdminPage() {
       setCheckingAuth(false);
       loadProjects();
       loadRedemptions();
+      loadGamingSettings();
     }
 
     checkAuth();
@@ -155,6 +164,9 @@ export default function AdminPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "gaming_redemptions" }, () => {
         loadRedemptions();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gaming_settings" }, () => {
+        loadGamingSettings();
+      })
       .subscribe();
 
     return () => {
@@ -162,6 +174,40 @@ export default function AdminPage() {
     };
   }, [router]);
 
+
+  async function loadGamingSettings() {
+    const { data, error } = await supabase
+      .from("gaming_settings")
+      .select("*")
+      .eq("id", "main")
+      .maybeSingle();
+
+    if (error || !data) return;
+
+    setGamingSettings(data as GamingSettings);
+  }
+
+  async function saveGamingSettings() {
+    const points = Math.max(1, Math.floor(Number(gamingSettings.youtube_reward_points || 10)));
+
+    const { error } = await supabase
+      .from("gaming_settings")
+      .upsert({
+        id: "main",
+        youtube_short_url: gamingSettings.youtube_short_url?.trim() || "",
+        youtube_reward_points: points,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setToast("Gaming settings updated.");
+    setTimeout(() => setToast(""), 2600);
+    loadGamingSettings();
+  }
 
   async function loadRedemptions() {
     const { data, error } = await supabase
@@ -648,6 +694,41 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+
+        <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-extrabold tracking-tight">Gaming Section Settings</h2>
+            <p className="text-sm text-slate-400">Update daily YouTube Short link and reward points.</p>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
+            <label className="grid gap-2 text-sm text-slate-300">
+              Daily YouTube Short URL
+              <input
+                className="form-field"
+                value={gamingSettings.youtube_short_url || ""}
+                onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_short_url: event.target.value }))}
+                placeholder="https://youtube.com/shorts/..."
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Reward Points
+              <input
+                className="form-field"
+                type="number"
+                min="1"
+                value={gamingSettings.youtube_reward_points}
+                onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_reward_points: Number(event.target.value || 10) }))}
+              />
+            </label>
+
+            <div className="flex items-end">
+              <button type="button" className="btn w-full" onClick={saveGamingSettings}>Save Gaming</button>
+            </div>
           </div>
         </section>
 

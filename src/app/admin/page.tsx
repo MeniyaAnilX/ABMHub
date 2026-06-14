@@ -167,17 +167,39 @@ export default function AdminPage() {
     const value = form.tasks;
     const start = textarea?.selectionStart ?? value.length;
     const end = textarea?.selectionEnd ?? value.length;
-    const selectedText = value.slice(start, end) || "your text";
-    const nextValue = value.slice(0, start) + startTag + selectedText + endTag + value.slice(end);
+    const selectedText = value.slice(start, end);
+
+    let nextValue = value;
+    let selectionStart = start;
+    let selectionEnd = end;
+
+    if (!selectedText) {
+      const placeholder = "your text";
+      nextValue = value.slice(0, start) + startTag + placeholder + endTag + value.slice(end);
+      selectionStart = start + startTag.length;
+      selectionEnd = selectionStart + placeholder.length;
+    } else if (selectedText.startsWith(startTag) && selectedText.endsWith(endTag) && selectedText.length >= startTag.length + endTag.length) {
+      const normalText = selectedText.slice(startTag.length, selectedText.length - endTag.length);
+      nextValue = value.slice(0, start) + normalText + value.slice(end);
+      selectionStart = start;
+      selectionEnd = start + normalText.length;
+    } else if (value.slice(0, start).endsWith(startTag) && value.slice(end).startsWith(endTag)) {
+      const before = value.slice(0, start - startTag.length);
+      const after = value.slice(end + endTag.length);
+      nextValue = before + selectedText + after;
+      selectionStart = start - startTag.length;
+      selectionEnd = selectionStart + selectedText.length;
+    } else {
+      nextValue = value.slice(0, start) + startTag + selectedText + endTag + value.slice(end);
+      selectionStart = start + startTag.length;
+      selectionEnd = selectionStart + selectedText.length;
+    }
 
     updateForm("tasks", nextValue);
 
     window.setTimeout(() => {
       const currentTextarea = tasksRef.current;
       if (!currentTextarea) return;
-
-      const selectionStart = start + startTag.length;
-      const selectionEnd = selectionStart + selectedText.length;
 
       currentTextarea.focus();
       currentTextarea.setSelectionRange(selectionStart, selectionEnd);

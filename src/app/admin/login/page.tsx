@@ -29,7 +29,26 @@ export default function AdminLoginPage() {
       return;
     }
 
-    router.push("/admin");
+    const cleanEmail = email.trim().toLowerCase();
+    const { data: adminRow, error: adminError } = await supabase
+      .from("admin_users")
+      .select("email")
+      .ilike("email", cleanEmail)
+      .maybeSingle();
+
+    if (adminError) {
+      await supabase.auth.signOut();
+      setMessage("Admin check failed: " + adminError.message);
+      return;
+    }
+
+    if (!adminRow) {
+      await supabase.auth.signOut();
+      setMessage("This email is not admin. Please use normal login on the home page.");
+      return;
+    }
+
+    router.replace("/admin");
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
@@ -28,6 +28,7 @@ export default function PublicHomePage() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [authOpen, setAuthOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const modalHistoryActiveRef = useRef(false);
 
   function showToast(message: string) {
     setToast(message);
@@ -97,6 +98,38 @@ export default function PublicHomePage() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedProject || typeof window === "undefined") return;
+
+    if (!modalHistoryActiveRef.current) {
+      window.history.pushState({ ...(window.history.state || {}), abmhubProjectModal: true }, "", window.location.href);
+      modalHistoryActiveRef.current = true;
+    }
+
+    const handlePopState = () => {
+      if (modalHistoryActiveRef.current) {
+        modalHistoryActiveRef.current = false;
+        setSelectedProject(null);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [selectedProject]);
+
+  function closeProjectDetails() {
+    if (modalHistoryActiveRef.current && typeof window !== "undefined") {
+      window.history.back();
+      return;
+    }
+
+    setSelectedProject(null);
+  }
+
 
   async function logout() {
     await supabase.auth.signOut();
@@ -317,7 +350,7 @@ export default function PublicHomePage() {
         )}
       </main>
 
-      <ProjectDetails project={selectedProject} onClose={() => setSelectedProject(null)} />
+      <ProjectDetails project={selectedProject} onClose={closeProjectDetails} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => showToast("Login successful")} />
     </>
   );

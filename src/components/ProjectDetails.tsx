@@ -99,6 +99,34 @@ function renderTaskText(tasks: string[] | null) {
   });
 }
 
+function faviconUrl(domain: string) {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+}
+
+function getQuestIconUrl(platform: string, url: string) {
+  if (platform === "Galxe") return faviconUrl("galxe.com");
+  if (platform === "Zealy") return faviconUrl("zealy.io");
+  if (platform === "Guild") return faviconUrl("guild.xyz");
+
+  try {
+    const hostname = new URL(url).hostname.replace("www.", "");
+    return faviconUrl(hostname);
+  } catch {
+    return faviconUrl("abmhub.xyz");
+  }
+}
+
+function QuestBrandIcon({ platform, url }: { platform: string; url: string }) {
+  const iconUrl = getQuestIconUrl(platform, url);
+
+  return (
+    <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={iconUrl} alt={`${platform} logo`} className="h-4 w-4 object-contain" loading="lazy" />
+    </span>
+  );
+}
+
 function DetailBox({
   label,
   value,
@@ -204,7 +232,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
             <div className="grid gap-3 md:grid-cols-2">
               {questLinks.map((link) => (
                 <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
-                  <Trophy size={16} />
+                  <QuestBrandIcon platform={link.platform} url={link.url} />
                   Open {link.platform}
                 </a>
               ))}

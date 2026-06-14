@@ -233,7 +233,14 @@ export default function AdminPage() {
       chain: form.chain,
       cost: form.cost,
       summary: form.summary.trim() || null,
-      tasks: form.tasks.split("\n").map((task) => task.trim()).filter(Boolean),
+      tasks: (() => {
+        const lines = form.tasks.replace(/\r\n/g, "\n").split("\n").map((task) => task.trimEnd());
+
+        while (lines.length && !lines[0].trim()) lines.shift();
+        while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+
+        return lines;
+      })(),
     };
 
     const result = form.id

@@ -177,7 +177,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
       <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto overflow-x-hidden rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:border-0 max-sm:p-4">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-4 max-sm:gap-3">
-            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-white/15 bg-purple-600 font-extrabold text-white max-sm:h-12 max-sm:w-12 max-sm:rounded-2xl">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-slate-700/80 bg-black/45 font-extrabold text-white shadow-none project-logo-frame max-sm:h-12 max-sm:w-12 max-sm:rounded-2xl">
               {project.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={project.logo_url} alt={`${project.project_name} logo`} className="h-full w-full object-cover" />

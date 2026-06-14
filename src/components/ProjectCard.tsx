@@ -53,7 +53,7 @@ export function ProjectCard({
       className="glass smooth-card flex min-h-[318px] cursor-pointer flex-col gap-3 rounded-[20px] p-[18px] max-sm:min-h-0 max-sm:rounded-[18px] max-sm:p-4"
     >
       <div className="flex items-start gap-3 max-[380px]:gap-2">
-        <div className="grid h-[50px] w-[50px] shrink-0 place-items-center overflow-hidden rounded-[15px] border border-white/15 bg-purple-600 font-extrabold text-white max-sm:h-12 max-sm:w-12">
+        <div className="grid h-[50px] w-[50px] shrink-0 place-items-center overflow-hidden rounded-[15px] border border-slate-700/80 bg-black/45 font-extrabold text-white shadow-none project-logo-frame max-sm:h-12 max-sm:w-12">
           {project.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={project.logo_url} alt={`${project.project_name} logo`} className="h-full w-full object-cover" />

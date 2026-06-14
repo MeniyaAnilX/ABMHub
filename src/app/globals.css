@@ -492,3 +492,11 @@ div {
     overflow-wrap: anywhere;
   }
 }
+
+
+/* ABMHub v50: project logo frame must stay neutral black, not pink/purple */
+.project-logo-frame {
+  background: rgba(0, 0, 0, 0.45) !important;
+  border-color: rgba(51, 65, 85, 0.85) !important;
+  box-shadow: none !important;
+}

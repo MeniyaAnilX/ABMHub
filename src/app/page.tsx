@@ -240,12 +240,6 @@ export default function PublicHomePage() {
                   </button>
                 </div>
 
-                {user ? (
-                  <div className="rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-xs font-bold text-slate-400">
-                    Saved: <span className="text-amber-300">{favoriteIds.size}</span> / Total:{" "}
-                    <span className="text-white">{projects.length}</span>
-                  </div>
-                ) : null}
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">

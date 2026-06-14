@@ -889,12 +889,12 @@ export default function AdminPage() {
                 className="form-field"
                 value={gamingSettings.offerwall_url || ""}
                 onChange={(event) => setGamingSettings((current) => ({ ...current, offerwall_url: event.target.value }))}
-                placeholder="Paste CPAlead or Torox offerwall URL. Use {"{"}USER_ID{"}"} or {"{"}SUBID{"}"} placeholder."
+                placeholder="Paste CPAlead or Torox offerwall URL. Use USER_ID or SUBID placeholder."
               />
             </label>
 
             <div className="rounded-2xl border border-blue-400/15 bg-blue-400/10 p-3 text-xs leading-5 text-blue-100/75">
-              Use only one active offerwall here. You can replace CPAlead with Torox anytime. Example: https://www.qckclk.com/wall/Q5rwH?subid={"{"}USER_ID{"}"}
+              Use only one active offerwall here. You can replace CPAlead with Torox anytime. Example: https://www.qckclk.com/wall/Q5rwH?subid=USER_ID
             </div>
 
             <button type="button" className="btn w-full" onClick={saveGamingSettings}>Save Gaming Settings</button>

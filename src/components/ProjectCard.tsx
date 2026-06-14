@@ -73,10 +73,23 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
             <ExternalLink size={12} />
           </a>
         </div>
+
+        {project.website_url ? (
+          <a
+            href={project.website_url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            className="grid h-[36px] w-[36px] shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[.045] text-slate-400 hover:border-cyan-400/25 hover:text-white"
+            title="Website"
+          >
+            <Globe size={16} />
+          </a>
+        ) : null}
       </div>
 
       <p className="min-h-[39px] text-[12.5px] leading-relaxed text-slate-400">
-        {project.summary || "Airdrop opportunity with funding, backers and hunter task tracking."}
+        {project.summary || "Airdrop opportunity with funding, backers and task tracking."}
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -103,26 +116,11 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mt-auto flex flex-wrap gap-2 border-t border-white/10 pt-3">
         <span className="badge border-cyan-500/25 bg-cyan-500/15 text-cyan-300">
           <Wallet size={13} />
           {project.cost}
         </span>
-      </div>
-
-      <div className="mt-auto flex items-center justify-end gap-3 border-t border-white/10 pt-3">
-        {project.website_url ? (
-          <a
-            href={project.website_url}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(event) => event.stopPropagation()}
-            className="grid h-[34px] w-[34px] place-items-center rounded-xl border border-white/10 bg-white/[.04] text-slate-400 hover:text-white"
-            title="Website"
-          >
-            <Globe size={16} />
-          </a>
-        ) : null}
       </div>
     </article>
   );

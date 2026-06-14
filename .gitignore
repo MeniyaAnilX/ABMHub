@@ -54,9 +54,12 @@ dist/
 .env.local
 .env.*.local
 .vercel/
+<<<<<<< Updated upstream
 *.log
 *.pem
 .DS_Store
+=======
+>>>>>>> Stashed changes
 config.txt
 *.bat
 *.sql

@@ -44,7 +44,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4">
       <button className="absolute inset-0 cursor-default" aria-label="Close project details" onClick={onClose} />
 
-      <section className="glass relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto rounded-[28px] border-white/15 bg-slate-950/95 p-6">
+      <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto rounded-[28px] border border-white/15 bg-[#0b1220] p-6">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-white/15 bg-purple-600 font-extrabold text-white">
@@ -70,9 +70,9 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
         </div>
 
         <div className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5">
-          <div className="mb-2 text-sm font-extrabold">Hunter Summary</div>
+          <div className="mb-2 text-sm font-extrabold">Summary</div>
           <p className="text-sm leading-relaxed text-slate-400">
-            {project.summary || "Airdrop project details and links."}
+            {project.summary || "Project details and links."}
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
-              <h3 className="mb-4 text-base font-extrabold tracking-tight">Hunter Tasks</h3>
+              <h3 className="mb-4 text-base font-extrabold tracking-tight">Tasks</h3>
               <ul className="grid gap-2">
                 {(project.tasks || []).map((task) => (
                   <li key={task} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-[#0b1020] p-3 text-sm leading-relaxed text-slate-400">
@@ -129,9 +129,9 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
-              <h3 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h3>
-              {questLinks.length ? (
+            {questLinks.length ? (
+              <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
+                <h3 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h3>
                 <div className="grid gap-3">
                   {questLinks.map((link) => (
                     <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
@@ -140,16 +140,8 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
                     </a>
                   ))}
                 </div>
-              ) : (
-                <div className="rounded-2xl border border-red-500/20 bg-[#3f1218] p-4 text-sm text-red-200">
-                  No quest link added yet.
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-3xl border border-cyan-500/20 bg-[#082f49] p-4 text-xs leading-relaxed text-cyan-100">
-              Safety: use a fresh wallet, verify links from official sources, and never share seed phrase or private key.
-            </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

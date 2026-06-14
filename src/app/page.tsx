@@ -7,12 +7,13 @@ import { Header } from "@/components/Header";
 import { ProjectCard } from "@/components/ProjectCard";
 import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
+import { getProjectSection, getSectionCopy, type ProjectSection } from "@/lib/projectSections";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
 import { Heart, LineChart, Rocket, Search, Star } from "lucide-react";
 
 type SortMode = "newest" | "az" | "funding";
-type Section = "airdrop" | "trading";
+type Section = ProjectSection;
 type ViewMode = "all" | "favorites";
 
 export default function PublicHomePage() {
@@ -29,6 +30,8 @@ export default function PublicHomePage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [toast, setToast] = useState("");
   const modalHistoryActiveRef = useRef(false);
+
+  const copy = getSectionCopy(section);
 
   function showToast(message: string) {
     setToast(message);
@@ -130,6 +133,11 @@ export default function PublicHomePage() {
     setSelectedProject(null);
   }
 
+  function switchSection(nextSection: Section) {
+    setSection(nextSection);
+    setQuery("");
+    setViewMode("all");
+  }
 
   async function logout() {
     await supabase.auth.signOut();
@@ -194,10 +202,28 @@ export default function PublicHomePage() {
     showToast("Added to favorites");
   }
 
+  const sectionProjects = useMemo(() => {
+    return projects.filter((project) => getProjectSection(project) === section);
+  }, [projects, section]);
+
+  const counts = useMemo(() => {
+    return projects.reduce(
+      (total, project) => {
+        total[getProjectSection(project)] += 1;
+        return total;
+      },
+      { airdrop: 0, trading: 0 } as Record<Section, number>
+    );
+  }, [projects]);
+
+  const favoriteSectionCount = useMemo(() => {
+    return sectionProjects.filter((project) => favoriteIds.has(project.id)).length;
+  }, [sectionProjects, favoriteIds]);
+
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase();
 
-    const list = projects.filter((project) => {
+    const list = sectionProjects.filter((project) => {
       if (viewMode === "favorites" && !favoriteIds.has(project.id)) return false;
 
       const searchText = [
@@ -223,7 +249,7 @@ export default function PublicHomePage() {
     });
 
     return list;
-  }, [projects, query, sort, viewMode, favoriteIds]);
+  }, [sectionProjects, query, sort, viewMode, favoriteIds]);
 
   return (
     <>
@@ -238,110 +264,91 @@ export default function PublicHomePage() {
 
       <main className="app-shell">
         <section className="mb-5 flex max-w-full gap-3 overflow-x-auto pb-1">
-          <button className={`section-tab ${section === "airdrop" ? "active" : ""}`} onClick={() => setSection("airdrop")}>
+          <button className={`section-tab ${section === "airdrop" ? "active" : ""}`} onClick={() => switchSection("airdrop")}>
             <Rocket size={15} className="inline-block" /> Airdrop
+            <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{counts.airdrop}</span>
           </button>
-          <button className={`section-tab ${section === "trading" ? "active" : ""}`} onClick={() => setSection("trading")}>
+          <button className={`section-tab ${section === "trading" ? "active" : ""}`} onClick={() => switchSection("trading")}>
             <LineChart size={15} className="inline-block" /> Trading
+            <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{counts.trading}</span>
           </button>
         </section>
 
-        {section === "airdrop" ? (
-          <>
-            <section className="glass mb-[18px] rounded-[22px] p-3.5 max-sm:rounded-[18px] max-sm:p-3">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-3 max-sm:block">
-                <div className="flex flex-wrap gap-2 max-sm:mb-3">
-                  <button
-                    className={`section-tab !px-4 !py-2 ${viewMode === "all" ? "active" : ""}`}
-                    onClick={() => setViewMode("all")}
-                  >
-                    <Rocket size={14} className="inline-block" />
-                    All Projects
-                    <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{projects.length}</span>
-                  </button>
+        <section className="glass mb-[18px] rounded-[22px] p-3.5 max-sm:rounded-[18px] max-sm:p-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 max-sm:block">
+            <div className="flex flex-wrap gap-2 max-sm:mb-3">
+              <button
+                className={`section-tab !px-4 !py-2 ${viewMode === "all" ? "active" : ""}`}
+                onClick={() => setViewMode("all")}
+              >
+                {section === "trading" ? <LineChart size={14} className="inline-block" /> : <Rocket size={14} className="inline-block" />}
+                {copy.allLabel}
+                <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{sectionProjects.length}</span>
+              </button>
 
-                  <button
-                    className={`section-tab !px-4 !py-2 ${viewMode === "favorites" ? "active" : ""}`}
-                    onClick={openFavoritesView}
-                  >
-                    <Star size={14} className="inline-block" />
-                    My Favorites
-                    <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{favoriteIds.size}</span>
-                  </button>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">
-                <div className="relative min-w-0">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={17} />
-                  <input
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    className="form-field search-field"
-                    placeholder={
-                      viewMode === "favorites"
-                        ? "Search your favorite projects..."
-                        : "Search project, backer, chain, quest, category..."
-                    }
-                  />
-                </div>
-
-                <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="form-field">
-                  <option value="newest">New First</option>
-                  <option value="az">A-Z</option>
-                  <option value="funding">Funding</option>
-                </select>
-              </div>
-            </section>
-
-            {loading ? (
-              <div className="glass rounded-2xl p-10 text-center text-slate-400">Loading projects...</div>
-            ) : errorMsg ? (
-              <div className="glass rounded-2xl p-10 text-center text-cyan-200">
-                Supabase read error: {errorMsg}
-              </div>
-            ) : filteredProjects.length ? (
-              <section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[15px] max-sm:grid-cols-1 max-sm:gap-3">
-                {filteredProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    onOpen={setSelectedProject}
-                    isFavorite={favoriteIds.has(project.id)}
-                    onToggleFavorite={toggleFavorite}
-                  />
-                ))}
-              </section>
-            ) : viewMode === "favorites" ? (
-              <div className="glass rounded-2xl p-10 text-center">
-                <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-300">
-                  <Heart size={24} />
-                </div>
-                <h2 className="mb-2 text-xl font-extrabold">No favorite project found</h2>
-                <p className="mx-auto mb-5 max-w-md text-sm leading-relaxed text-slate-400">
-                  Star projects from the cards, then open My Favorites to find them quickly anytime.
-                </p>
-                <button className="btn" onClick={() => setViewMode("all")}>
-                  Browse All Projects
-                </button>
-              </div>
-            ) : (
-              <div className="glass rounded-2xl p-10 text-center text-slate-400">No matching projects found.</div>
-            )}
-          </>
-        ) : (
-          <section className="glass grid min-h-[360px] place-items-center rounded-[28px] p-8 text-center max-sm:min-h-[300px] max-sm:rounded-[20px] max-sm:p-5">
-            <div>
-              <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-purple-600">
-                <LineChart size={30} />
-              </div>
-              <h1 className="mb-2 text-3xl font-extrabold tracking-tight">Trading Section Coming Soon</h1>
-              <p className="mx-auto max-w-lg text-sm leading-relaxed text-slate-400">
-                This section is planned for ABM Hub future expansion. For now, Airdrop section is active.
-              </p>
+              <button
+                className={`section-tab !px-4 !py-2 ${viewMode === "favorites" ? "active" : ""}`}
+                onClick={openFavoritesView}
+              >
+                <Star size={14} className="inline-block" />
+                {copy.favoritesLabel}
+                <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{favoriteSectionCount}</span>
+              </button>
             </div>
+          </div>
+
+          <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">
+            <div className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={17} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="form-field search-field"
+                placeholder={viewMode === "favorites" ? `Search your favorite ${copy.title.toLowerCase()}...` : copy.search}
+              />
+            </div>
+
+            <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="form-field">
+              <option value="newest">New First</option>
+              <option value="az">A-Z</option>
+              <option value="funding">{section === "trading" ? "Max Account" : "Funding"}</option>
+            </select>
+          </div>
+        </section>
+
+        {loading ? (
+          <div className="glass rounded-2xl p-10 text-center text-slate-400">Loading projects...</div>
+        ) : errorMsg ? (
+          <div className="glass rounded-2xl p-10 text-center text-cyan-200">
+            Supabase read error: {errorMsg}
+          </div>
+        ) : filteredProjects.length ? (
+          <section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[15px] max-sm:grid-cols-1 max-sm:gap-3">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onOpen={setSelectedProject}
+                isFavorite={favoriteIds.has(project.id)}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
           </section>
+        ) : viewMode === "favorites" ? (
+          <div className="glass rounded-2xl p-10 text-center">
+            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-300">
+              <Heart size={24} />
+            </div>
+            <h2 className="mb-2 text-xl font-extrabold">{copy.favoriteEmptyTitle}</h2>
+            <p className="mx-auto mb-5 max-w-md text-sm leading-relaxed text-slate-400">
+              {copy.favoriteEmptyText}
+            </p>
+            <button className="btn" onClick={() => setViewMode("all")}>
+              {copy.browseText}
+            </button>
+          </div>
+        ) : (
+          <div className="glass rounded-2xl p-10 text-center text-slate-400">{copy.emptyText}</div>
         )}
       </main>
 

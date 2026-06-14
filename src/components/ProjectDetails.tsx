@@ -1,6 +1,7 @@
 import type { Project } from "@/types/project";
 import { ExternalLink, Gift, Globe, X } from "lucide-react";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
+import { getProjectSection, getSectionCopy } from "@/lib/projectSections";
 
 type ProjectDetailsProps = {
   project: Project | null;
@@ -9,6 +10,8 @@ type ProjectDetailsProps = {
 
 function money(value: number | null) {
   const amount = Number(value || 0);
+  if (!amount) return "$0";
+  if (amount < 1) return `$${(amount * 1000).toFixed(0)}K`;
   return amount >= 1000 ? `$${(amount / 1000).toFixed(1)}B` : `$${amount}M`;
 }
 
@@ -142,10 +145,6 @@ function QuestBrandIcon({ platform, url }: { platform: string; url: string }) {
   return <BrandIcon src={getQuestIconUrl(platform, url)} label={platform} />;
 }
 
-function LinkBrandIcon({ url, label, fallbackDomain }: { url: string; label: string; fallbackDomain: string }) {
-  return <BrandIcon src={faviconUrl(domainFromUrl(url, fallbackDomain))} label={label} />;
-}
-
 function DetailBox({
   label,
   value,
@@ -169,6 +168,8 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const questLinks = getQuestLinks(project);
   const questLabel = getQuestLabel(project);
+  const section = getProjectSection(project);
+  const copy = getSectionCopy(section);
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4 max-sm:p-0">
@@ -202,7 +203,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
         <div className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
           <div className="mb-2 text-sm font-extrabold">Summary</div>
           <p className="text-sm leading-relaxed text-slate-400">
-            {project.summary || "Project details and links."}
+            {project.summary || copy.fallbackSummary}
           </p>
         </div>
 
@@ -210,12 +211,12 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
           <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
             <h3 className="mb-4 text-base font-extrabold tracking-tight">Project Snapshot</h3>
             <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-              <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
-              <DetailBox label="Backed by" value={project.backed_by} />
-              <DetailBox label="Phase" value={project.phase} />
+              <DetailBox label={copy.fundingLabel} value={money(project.funding_musd)} highlight />
+              <DetailBox label={copy.backedLabel} value={project.backed_by} />
+              <DetailBox label={copy.phaseLabel} value={project.phase} />
               <DetailBox label="Status" value={<span className={statusClass(project.status)}>{project.status}</span>} />
-              <DetailBox label="Quest" value={questLabel} />
-              <DetailBox label="Chain" value={project.chain} />
+              <DetailBox label={copy.questLabel} value={questLabel} />
+              <DetailBox label={copy.chainLabel} value={project.chain} />
               <DetailBox label="Cost" value={project.cost} />
             </div>
           </div>
@@ -245,7 +246,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
               {project.claim_airdrop_url ? (
                 <a href={project.claim_airdrop_url} target="_blank" rel="noreferrer" className="btn justify-start">
                   <Gift size={18} />
-                  Claim Airdrop
+                  {copy.claimText}
                 </a>
               ) : null}
             </div>
@@ -254,7 +255,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
 
         {questLinks.length ? (
           <div className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
-            <h3 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h3>
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">{section === "trading" ? "Apply / Task Links" : "Quest Links"}</h3>
             <div className="grid gap-3 md:grid-cols-2">
               {questLinks.map((link) => (
                 <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">

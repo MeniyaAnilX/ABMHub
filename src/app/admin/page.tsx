@@ -4,15 +4,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Toast } from "@/components/Toast";
+import { allCategories } from "@/lib/projectSections";
 import { supabase } from "@/lib/supabase";
 import type { Category, Chain, Cost, Project, ProjectPhase, ProjectStatus, QuestLink } from "@/types/project";
 import { LogOut, Plus, Save, Search, Trash2, Upload } from "lucide-react";
 
-const categories: Category[] = ["DeFi", "AI", "Layer 2", "SocialFi", "Infra", "Wallet", "NFT", "Bridge", "Restaking", "RWA", "Other"];
-const phases: ProjectPhase[] = ["Testnet", "Mainnet", "Both", "Waitlist"];
+const categories: Category[] = [...allCategories];
+const phases: ProjectPhase[] = ["Testnet", "Mainnet", "Both", "Waitlist", "Free Trial", "Evaluation", "Instant Funding", "Funded Account"];
 const statuses: ProjectStatus[] = ["Live", "Trending", "Ended"];
-const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "BNB Chain", "Other"];
-const costs: Cost[] = ["Free", "Low Gas", "Paid"];
+const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "BNB Chain", "Forex", "Crypto", "Futures", "Stocks", "Multi-Asset", "Other"];
+const costs: Cost[] = ["Free", "Low Gas", "Paid", "Free Trial"];
 
 type FormState = {
   id?: string;
@@ -371,7 +372,7 @@ export default function AdminPage() {
         <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight">Admin Dashboard</h1>
-            <p className="text-sm text-slate-400">Add, edit, delete projects and upload logos.</p>
+            <p className="text-sm text-slate-400">Add, edit, delete airdrop and prop firm projects.</p>
           </div>
           <button className="btn btn-ghost" onClick={logout}>
             <LogOut size={16} />
@@ -389,22 +390,22 @@ export default function AdminPage() {
 
           <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
             <label className="grid gap-2 text-sm text-slate-300">
-              Project name *
+              Project / firm name *
               <input className="form-field" value={form.project_name} onChange={(e) => updateForm("project_name", e.target.value)} required />
             </label>
 
             <label className="grid gap-2 text-sm text-slate-300">
               X handle *
-              <input className="form-field" value={form.x_handle} onChange={(e) => updateForm("x_handle", e.target.value)} placeholder="@project" required />
+              <input className="form-field" value={form.x_handle} onChange={(e) => updateForm("x_handle", e.target.value)} placeholder="@project or @firm" required />
             </label>
 
             <label className="grid gap-2 text-sm text-slate-300">
-              Funding raised, M USD
+              Funding / max account, M USD
               <input className="form-field" type="number" min="0" step="0.1" value={form.funding_musd} onChange={(e) => updateForm("funding_musd", e.target.value)} />
             </label>
 
             <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
-              Backed team *
+              Backed by / provider note *
               <input className="form-field" value={form.backed_by} onChange={(e) => updateForm("backed_by", e.target.value)} required />
             </label>
 
@@ -415,7 +416,7 @@ export default function AdminPage() {
             <SelectField label="Cost" value={form.cost} options={costs} onChange={(value) => updateForm("cost", value as Cost)} />
 
             <div className="col-span-2 grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 max-md:col-span-1 max-md:grid-cols-1">
-              <div className="col-span-2 text-sm font-extrabold text-slate-200 max-md:col-span-1">Quest Links — add one or many</div>
+              <div className="col-span-2 text-sm font-extrabold text-slate-200 max-md:col-span-1">Quest / task / apply links — add one or many</div>
               <label className="grid gap-2 text-sm text-slate-300">
                 Galxe URL
                 <input className="form-field" value={form.galxe_url} onChange={(e) => updateForm("galxe_url", e.target.value)} placeholder="https://app.galxe.com/..." />
@@ -429,8 +430,8 @@ export default function AdminPage() {
                 <input className="form-field" value={form.guild_url} onChange={(e) => updateForm("guild_url", e.target.value)} placeholder="https://guild.xyz/..." />
               </label>
               <label className="grid gap-2 text-sm text-slate-300">
-                Own Portal URL
-                <input className="form-field" value={form.portal_url} onChange={(e) => updateForm("portal_url", e.target.value)} placeholder="https://project.xyz/quest" />
+                Own Portal / Apply URL
+                <input className="form-field" value={form.portal_url} onChange={(e) => updateForm("portal_url", e.target.value)} placeholder="https://project.xyz/quest-or-apply" />
               </label>
             </div>
 
@@ -441,12 +442,12 @@ export default function AdminPage() {
 
             <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
               Website URL
-              <input className="form-field" value={form.website_url} onChange={(e) => updateForm("website_url", e.target.value)} placeholder="https://project.xyz" />
+              <input className="form-field" value={form.website_url} onChange={(e) => updateForm("website_url", e.target.value)} placeholder="https://project-or-firm.xyz" />
             </label>
 
             <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
-              Claim Airdrop URL
-              <input className="form-field" value={form.claim_airdrop_url} onChange={(e) => updateForm("claim_airdrop_url", e.target.value)} placeholder="https://project.xyz/claim" />
+              Claim / Apply URL
+              <input className="form-field" value={form.claim_airdrop_url} onChange={(e) => updateForm("claim_airdrop_url", e.target.value)} placeholder="https://project-or-firm.xyz/claim" />
             </label>
 
             <label className="col-span-2 grid gap-2 text-sm text-slate-300 max-md:col-span-1">
@@ -528,7 +529,7 @@ export default function AdminPage() {
 
         <section className="glass rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 grid grid-cols-[1fr_220px] items-center gap-3 max-sm:grid-cols-1">
-            <h2 className="text-lg font-extrabold tracking-tight">Manage Projects</h2>
+            <h2 className="text-lg font-extrabold tracking-tight">Manage Projects / Firms</h2>
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
               <input className="form-field search-field" placeholder="Search admin list..." value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -541,7 +542,7 @@ export default function AdminPage() {
                 <div className="flex items-start justify-between gap-4 max-sm:flex-col">
                   <div>
                     <h3 className="font-extrabold tracking-tight">{project.project_name}</h3>
-                    <p className="text-sm text-slate-400">{project.x_handle} • {project.phase} • {project.status}</p>
+                    <p className="text-sm text-slate-400">{project.x_handle} • {project.category} • {project.phase} • {project.status}</p>
                     <p className="mt-1 text-sm text-slate-500">{project.backed_by}</p>
                   </div>
                   <div className="flex gap-2 max-sm:w-full">

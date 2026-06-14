@@ -69,6 +69,15 @@ type ManualPointsForm = {
   note: string;
 };
 
+type GamingWallet = {
+  email: string;
+  user_id: string;
+  approved_points: number;
+  pending_points: number;
+  rejected_points: number;
+  redemption_count: number;
+};
+
 type FormState = {
   id?: string;
   project_name: string;
@@ -348,6 +357,44 @@ export default function AdminPage() {
     }
 
     setToast("Pending points approved.");
+    setTimeout(() => setToast(""), 2600);
+    await Promise.all([loadGamingLedger(), searchGamingUsers()]);
+  }
+
+  async function rejectUserPendingPoints(email: string | null) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+
+    if (!cleanEmail) {
+      setMessage("User email not found.");
+      return;
+    }
+
+    const { error } = await supabase.rpc("admin_reject_user_pending_points", {
+      target_email: cleanEmail,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setToast("Pending points rejected.");
+    setTimeout(() => setToast(""), 2600);
+    await Promise.all([loadGamingLedger(), searchGamingUsers()]);
+  }
+
+  async function updateLedgerStatus(item: GamingLedger, nextStatus: "approved" | "rejected") {
+    const { error } = await supabase.rpc("admin_update_gaming_point_status", {
+      ledger_id: item.id,
+      new_status: nextStatus,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setToast(nextStatus === "approved" ? "Point row approved." : "Point row rejected.");
     setTimeout(() => setToast(""), 2600);
     await Promise.all([loadGamingLedger(), searchGamingUsers()]);
   }
@@ -633,6 +680,65 @@ export default function AdminPage() {
     });
   }, [gamingLedger, gamingSearch]);
 
+  const gamingWallets = useMemo(() => {
+    const map = new Map<string, GamingWallet>();
+
+    for (const item of gamingLedger) {
+      const email = (item.user_email || item.user_id || "unknown").toLowerCase();
+      const current = map.get(email) || {
+        email,
+        user_id: item.user_id,
+        approved_points: 0,
+        pending_points: 0,
+        rejected_points: 0,
+        redemption_count: 0,
+      };
+
+      if (item.status === "approved") current.approved_points += Number(item.points || 0);
+      if (item.status === "pending") current.pending_points += Math.max(0, Number(item.points || 0));
+      if (item.status === "rejected") current.rejected_points += Math.max(0, Number(item.points || 0));
+
+      map.set(email, current);
+    }
+
+    for (const redemption of redemptions) {
+      const email = (redemption.user_email || redemption.user_id || "unknown").toLowerCase();
+      const current = map.get(email) || {
+        email,
+        user_id: redemption.user_id,
+        approved_points: 0,
+        pending_points: 0,
+        rejected_points: 0,
+        redemption_count: 0,
+      };
+
+      current.redemption_count += 1;
+      map.set(email, current);
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.pending_points - a.pending_points || b.approved_points - a.approved_points);
+  }, [gamingLedger, redemptions]);
+
+  const filteredWallets = useMemo(() => {
+    const text = gamingSearch.trim().toLowerCase();
+
+    return gamingWallets.filter((item) => {
+      const searchText = [
+        item.email,
+        item.user_id,
+        item.approved_points,
+        item.pending_points,
+        item.redemption_count,
+      ].join(" ").toLowerCase();
+
+      return !text || searchText.includes(text);
+    });
+  }, [gamingWallets, gamingSearch]);
+
+  const filteredPendingLedger = useMemo(() => {
+    return filteredLedger.filter((item) => item.status === "pending" && Number(item.points || 0) > 0);
+  }, [filteredLedger]);
+
   if (checkingAuth) {
     return (
       <>
@@ -904,8 +1010,8 @@ export default function AdminPage() {
 
         <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4">
-            <h2 className="text-lg font-extrabold tracking-tight">Gaming Users & Points Control</h2>
-            <p className="text-sm text-slate-400">Search any user email, see approved/pending points, requests, and add or cut points.</p>
+            <h2 className="text-lg font-extrabold tracking-tight">Gaming User Wallets</h2>
+            <p className="text-sm text-slate-400">Search email, see approved/pending points, then approve or reject pending points.</p>
           </div>
 
           <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto]">
@@ -913,68 +1019,111 @@ export default function AdminPage() {
               className="form-field"
               value={gamingSearch}
               onChange={(event) => setGamingSearch(event.target.value)}
-              placeholder="Search user email, request, source..."
+              placeholder="Search user email..."
             />
             <button type="button" className="btn btn-ghost" onClick={() => {
-              searchGamingUsers();
-              loadRedemptions();
               loadGamingLedger();
+              loadRedemptions();
+              searchGamingUsers();
             }}>
               Search / Refresh
             </button>
           </div>
 
-          <div className="mb-5 grid gap-3 md:grid-cols-[1fr_150px_160px_1fr_auto]">
-            <input
-              className="form-field"
-              value={manualPoints.email}
-              onChange={(event) => setManualPoints((current) => ({ ...current, email: event.target.value }))}
-              placeholder="User email"
-            />
-            <input
-              className="form-field"
-              type="number"
-              value={manualPoints.points}
-              onChange={(event) => setManualPoints((current) => ({ ...current, points: event.target.value }))}
-              placeholder="Points"
-            />
-            <select
-              className="form-field"
-              value={manualPoints.status}
-              onChange={(event) => setManualPoints((current) => ({ ...current, status: event.target.value as ManualPointsForm["status"] }))}
-            >
-              <option value="approved">approved</option>
-              <option value="pending">pending</option>
-              <option value="rejected">rejected</option>
-            </select>
-            <input
-              className="form-field"
-              value={manualPoints.note}
-              onChange={(event) => setManualPoints((current) => ({ ...current, note: event.target.value }))}
-              placeholder="Note"
-            />
-            <button type="button" className="btn" onClick={addManualGamingPoints}>Add / Cut</button>
-          </div>
+          <div className="mb-5 grid gap-3 lg:grid-cols-3">
+            {filteredWallets.length ? filteredWallets.slice(0, 12).map((item) => (
+              <div key={item.email} className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                <div className="mb-3 break-all text-sm font-extrabold text-white">{item.email}</div>
 
-          <div className="grid gap-3 lg:grid-cols-3">
-            {gamingUsers.length ? gamingUsers.slice(0, 9).map((item) => (
-              <div key={item.user_id} className="rounded-2xl border border-white/10 bg-black/15 p-4">
-                <div className="mb-2 break-all text-sm font-extrabold text-white">{item.email || item.user_id}</div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
-                  <span>Approved</span>
-                  <b className="text-right text-emerald-300">{item.approved_points}</b>
-                  <span>Pending</span>
-                  <b className="text-right text-amber-300">{item.pending_points}</b>
-                  <span>Requests</span>
-                  <b className="text-right text-cyan-300">{item.redemption_count}</b>
+                <div className="mb-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/10 p-3">
+                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-200/70">Approved</div>
+                    <div className="text-xl font-black text-emerald-300">{item.approved_points}</div>
+                  </div>
+                  <div className="rounded-xl border border-amber-400/15 bg-amber-400/10 p-3">
+                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-amber-200/70">Pending</div>
+                    <div className="text-xl font-black text-amber-300">{item.pending_points}</div>
+                  </div>
                 </div>
-                <button type="button" className="btn mt-3 w-full" disabled={Number(item.pending_points || 0) <= 0} onClick={() => approveUserPendingPoints(item.email)}>
-                  Approve Pending Points
-                </button>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" className="btn" disabled={Number(item.pending_points || 0) <= 0} onClick={() => approveUserPendingPoints(item.email)}>
+                    Approve Pending
+                  </button>
+                  <button type="button" className="btn btn-danger" disabled={Number(item.pending_points || 0) <= 0} onClick={() => rejectUserPendingPoints(item.email)}>
+                    Reject Pending
+                  </button>
+                </div>
               </div>
             )) : (
               <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400 lg:col-span-3">
-                No users found. Run v41 SQL functions, then search again.
+                No wallet rows found. Add pending/approved points or wait for offerwall postback.
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+            <h3 className="mb-3 text-sm font-extrabold">Manual Add / Cut Points</h3>
+            <div className="grid gap-3 md:grid-cols-[1fr_150px_160px_1fr_auto]">
+              <input
+                className="form-field"
+                value={manualPoints.email}
+                onChange={(event) => setManualPoints((current) => ({ ...current, email: event.target.value }))}
+                placeholder="User email"
+              />
+              <input
+                className="form-field"
+                type="number"
+                value={manualPoints.points}
+                onChange={(event) => setManualPoints((current) => ({ ...current, points: event.target.value }))}
+                placeholder="Points"
+              />
+              <select
+                className="form-field"
+                value={manualPoints.status}
+                onChange={(event) => setManualPoints((current) => ({ ...current, status: event.target.value as ManualPointsForm["status"] }))}
+              >
+                <option value="pending">pending</option>
+                <option value="approved">approved</option>
+                <option value="rejected">rejected</option>
+              </select>
+              <input
+                className="form-field"
+                value={manualPoints.note}
+                onChange={(event) => setManualPoints((current) => ({ ...current, note: event.target.value }))}
+                placeholder="Note"
+              />
+              <button type="button" className="btn" onClick={addManualGamingPoints}>Add / Cut</button>
+            </div>
+          </div>
+        </section>
+
+        <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
+          <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
+            <div>
+              <h2 className="text-lg font-extrabold tracking-tight">Pending Point Requests</h2>
+              <p className="text-sm text-slate-400">Approve single pending point row or reject it. Use search above to filter by email.</p>
+            </div>
+            <button type="button" className="btn btn-ghost" onClick={loadGamingLedger}>Refresh</button>
+          </div>
+
+          <div className="grid gap-2">
+            {filteredPendingLedger.length ? filteredPendingLedger.slice(0, 100).map((item) => (
+              <div key={item.id} className="grid gap-3 rounded-2xl border border-white/10 bg-black/15 p-4 text-sm lg:grid-cols-[1.1fr_100px_1fr_220px]">
+                <div className="break-all">
+                  <b>{item.user_email || item.user_id}</b>
+                  <div className="text-xs text-slate-500">{new Date(item.created_at).toLocaleString()}</div>
+                </div>
+                <div className="text-lg font-black text-amber-300">+{item.points}</div>
+                <div className="text-slate-400">{item.source}{item.note ? ` • ${item.note}` : ""}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" className="btn" onClick={() => updateLedgerStatus(item, "approved")}>Approve</button>
+                  <button type="button" className="btn btn-danger" onClick={() => updateLedgerStatus(item, "rejected")}>Reject</button>
+                </div>
+              </div>
+            )) : (
+              <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400">
+                No pending point rows found.
               </div>
             )}
           </div>

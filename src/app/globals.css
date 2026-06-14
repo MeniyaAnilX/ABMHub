@@ -543,3 +543,12 @@ input[type="number"].form-field::-webkit-inner-spin-button {
 iframe[title="ABM Hub Offerwall"] {
   display: block;
 }
+
+
+/* ABMHub v47: clearer gaming wallet admin */
+.wallet-admin-card {
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.15);
+  border-radius: 1rem;
+  padding: 1rem;
+}

@@ -9,10 +9,7 @@ export type Chain =
   | "Solana"
   | "Sui"
   | "Bitcoin"
-  | "Multi"
-  | "Polygon"
   | "BNB Chain"
-  | "Avalanche"
   | "Other";
 export type Cost = "Free" | "Low Gas" | "Paid";
 export type Category =
@@ -27,12 +24,7 @@ export type Category =
   | "Bridge"
   | "Restaking"
   | "RWA"
-  | "Other"
-  | "L1"
-  | "L2"
-  | "ZK"
-  | "DEX"
-  | "Lending";
+  | "Other";
 
 export type QuestLink = {
   platform: Exclude<QuestPlatform, "None">;

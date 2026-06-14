@@ -6,12 +6,12 @@ import { Header } from "@/components/Header";
 import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
 import type { Category, Chain, Cost, Project, ProjectPhase, ProjectStatus, QuestLink } from "@/types/project";
-import { FileJson, LogOut, Plus, Save, Search, Trash2, Upload } from "lucide-react";
+import { LogOut, Plus, Save, Search, Trash2, Upload } from "lucide-react";
 
-const categories: Category[] = ["DeFi", "AI", "Layer 2", "Gaming", "SocialFi", "Infra", "Wallet", "NFT", "Bridge", "Restaking", "RWA", "Other", "L1", "L2", "ZK", "DEX", "Lending"];
+const categories: Category[] = ["DeFi", "AI", "Layer 2", "Gaming", "SocialFi", "Infra", "Wallet", "NFT", "Bridge", "Restaking", "RWA", "Other"];
 const phases: ProjectPhase[] = ["Testnet", "Mainnet", "Both", "Waitlist"];
 const statuses: ProjectStatus[] = ["Live", "Trending", "Ended"];
-const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "Multi", "Polygon", "BNB Chain", "Avalanche", "Other"];
+const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "BNB Chain", "Other"];
 const costs: Cost[] = ["Free", "Low Gas", "Paid"];
 
 type FormState = {
@@ -36,26 +36,6 @@ type FormState = {
   tasks: string;
 };
 
-type BulkProjectInput = {
-  project_name?: string;
-  x_handle?: string;
-  funding_musd?: number | string;
-  backed_by?: string;
-  category?: string;
-  phase?: string;
-  status?: string;
-  chain?: string;
-  cost?: string;
-  galxe_url?: string;
-  zealy_url?: string;
-  guild_url?: string;
-  portal_url?: string;
-  discord_url?: string;
-  website_url?: string;
-  summary?: string;
-  tasks?: string[] | string;
-};
-
 const emptyForm: FormState = {
   project_name: "",
   x_handle: "",
@@ -76,93 +56,6 @@ const emptyForm: FormState = {
   summary: "",
   tasks: "",
 };
-
-function cleanText(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeXHandle(value: unknown) {
-  const text = cleanText(value).replace("https://x.com/", "").replace("https://twitter.com/", "").replace(/^@/, "");
-  return text ? `@${text}` : "";
-}
-
-function normalizeCategory(value: unknown): Category {
-  const text = cleanText(value).toLowerCase();
-  if (text === "layer 2" || text === "l2") return "Layer 2";
-  if (text === "socialfi") return "SocialFi";
-  if (text === "restaking") return "Restaking";
-  if (text === "rwa") return "RWA";
-  const found = categories.find((item) => item.toLowerCase() === text);
-  return found || "Other";
-}
-
-function normalizePhase(value: unknown): ProjectPhase {
-  const text = cleanText(value).toLowerCase();
-  const found = phases.find((item) => item.toLowerCase() === text);
-  return found || "Testnet";
-}
-
-function normalizeStatus(value: unknown): ProjectStatus {
-  const text = cleanText(value).toLowerCase();
-  const found = statuses.find((item) => item.toLowerCase() === text);
-  return found || "Live";
-}
-
-function normalizeChain(value: unknown): Chain {
-  const text = cleanText(value).toLowerCase();
-  if (!text) return "Other";
-  if (text === "multi-chain" || text === "multichain" || text === "multi") return "Multi";
-  if (text === "bnb" || text === "bnb chain") return "BNB Chain";
-  const found = chains.find((item) => item.toLowerCase() === text);
-  return found || "Other";
-}
-
-function normalizeCost(value: unknown): Cost {
-  const text = cleanText(value).toLowerCase();
-  if (text.includes("paid")) return "Paid";
-  if (text.includes("low")) return "Low Gas";
-  return "Free";
-}
-
-function normalizeTasks(value: unknown) {
-  if (Array.isArray(value)) return value.map((task) => cleanText(task)).filter(Boolean);
-  if (typeof value === "string") {
-    return value
-      .split("\n")
-      .map((task) => task.replace(/^[-•]\s*/, "").trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-
-function cleanBulkJsonInput(value: string) {
-  let text = value.trim();
-
-  text = text.replace(/^```json\s*/i, "");
-  text = text.replace(/^```\s*/i, "");
-  text = text.replace(/```\s*$/i, "");
-  text = text.trim();
-
-  if (text.toLowerCase().startsWith("json")) {
-    text = text.slice(4).trim();
-  }
-
-  const firstArray = text.indexOf("[");
-  const lastArray = text.lastIndexOf("]");
-  const firstObject = text.indexOf("{");
-  const lastObject = text.lastIndexOf("}");
-
-  if (firstArray !== -1 && lastArray !== -1 && lastArray > firstArray) {
-    return text.slice(firstArray, lastArray + 1);
-  }
-
-  if (firstObject !== -1 && lastObject !== -1 && lastObject > firstObject) {
-    return text.slice(firstObject, lastObject + 1);
-  }
-
-  return text;
-}
 
 function getQuestUrls(project: Project) {
   const links = Array.isArray(project.quest_links) ? project.quest_links : [];
@@ -190,57 +83,15 @@ function buildQuestLinks(form: FormState): QuestLink[] {
   return links;
 }
 
-function buildQuestLinksFromBulk(item: BulkProjectInput): QuestLink[] {
-  const links: QuestLink[] = [];
-  const galxe = cleanText(item.galxe_url);
-  const zealy = cleanText(item.zealy_url);
-  const guild = cleanText(item.guild_url);
-  const portal = cleanText(item.portal_url);
-
-  if (galxe) links.push({ platform: "Galxe", url: galxe });
-  if (zealy) links.push({ platform: "Zealy", url: zealy });
-  if (guild) links.push({ platform: "Guild", url: guild });
-  if (portal) links.push({ platform: "Portal", url: portal });
-
-  return links;
-}
-
-function makePayloadFromBulk(item: BulkProjectInput) {
-  const questLinks = buildQuestLinksFromBulk(item);
-  const primaryQuest = questLinks[0];
-
-  return {
-    project_name: cleanText(item.project_name),
-    x_handle: normalizeXHandle(item.x_handle),
-    funding_musd: Number(item.funding_musd || 0),
-    backed_by: cleanText(item.backed_by),
-    discord_url: cleanText(item.discord_url) || null,
-    website_url: cleanText(item.website_url) || null,
-    quest_url: primaryQuest?.url || null,
-    logo_url: null,
-    category: normalizeCategory(item.category),
-    phase: normalizePhase(item.phase),
-    status: normalizeStatus(item.status),
-    quest_platform: primaryQuest?.platform || "None",
-    quest_links: questLinks,
-    chain: normalizeChain(item.chain),
-    cost: normalizeCost(item.cost),
-    summary: cleanText(item.summary) || null,
-    tasks: normalizeTasks(item.tasks),
-  };
-}
-
 export default function AdminPage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [bulkJson, setBulkJson] = useState("");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [bulkImporting, setBulkImporting] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -404,69 +255,6 @@ export default function AdminPage() {
     await loadProjects();
   }
 
-  async function importBulkProjects() {
-    setBulkImporting(true);
-    setMessage("");
-
-    try {
-      const cleanedJson = cleanBulkJsonInput(bulkJson);
-      const parsed = JSON.parse(cleanedJson);
-      const items: BulkProjectInput[] = Array.isArray(parsed) ? parsed : [parsed];
-
-      if (!items.length) {
-        setMessage("No projects found in JSON.");
-        setBulkImporting(false);
-        return;
-      }
-
-      const existingNames = new Set(projects.map((project) => project.project_name.trim().toLowerCase()));
-      const validPayloads = [];
-      let skipped = 0;
-
-      for (const item of items) {
-        const payload = makePayloadFromBulk(item);
-
-        if (!payload.project_name || !payload.x_handle) {
-          skipped += 1;
-          continue;
-        }
-
-        if (existingNames.has(payload.project_name.toLowerCase())) {
-          skipped += 1;
-          continue;
-        }
-
-        existingNames.add(payload.project_name.toLowerCase());
-        validPayloads.push(payload);
-      }
-
-      if (!validPayloads.length) {
-        setMessage(`No valid new projects to import. Skipped ${skipped}. Make sure project_name and x_handle exist.`);
-        setBulkImporting(false);
-        return;
-      }
-
-      const { error } = await supabase.from("projects").insert(validPayloads);
-
-      if (error) {
-        setMessage(error.message);
-        setBulkImporting(false);
-        return;
-      }
-
-      const successMessage = `Bulk import complete: ${validPayloads.length} added, ${skipped} skipped.`;
-      setMessage(successMessage);
-      setToast(successMessage);
-      setBulkJson("");
-      setTimeout(() => setToast(""), 3000);
-      await loadProjects();
-    } catch (error) {
-      setMessage(error instanceof Error ? `${error.message}. Tip: paste only JSON array/object. Code fences or the word json are now auto-cleaned, but broken commas/brackets still need fixing.` : "Invalid JSON.");
-    }
-
-    setBulkImporting(false);
-  }
-
   async function deleteProject(id: string) {
     if (!confirm("Delete this project?")) return;
 
@@ -526,7 +314,7 @@ export default function AdminPage() {
         <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight">Admin Dashboard</h1>
-            <p className="text-sm text-slate-400">Add, bulk import, edit, delete projects and upload logos.</p>
+            <p className="text-sm text-slate-400">Add, edit, delete projects and upload logos.</p>
           </div>
           <button className="btn btn-ghost" onClick={logout}>
             <LogOut size={16} />
@@ -535,34 +323,6 @@ export default function AdminPage() {
         </div>
 
         {message && <div className="glass mb-4 rounded-2xl p-4 text-sm text-cyan-200">{message}</div>}
-
-        <section className="glass mb-6 rounded-3xl p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <FileJson size={18} className="text-cyan-300" />
-            <h2 className="text-lg font-extrabold tracking-tight">Bulk Import Projects</h2>
-          </div>
-
-          <p className="mb-3 text-sm leading-relaxed text-slate-400">
-            Paste Grok JSON array here. Import skips duplicate project names and rows without project name or X handle.
-          </p>
-
-          <textarea
-            className="form-field min-h-[220px] font-mono text-xs"
-            value={bulkJson}
-            onChange={(event) => setBulkJson(event.target.value)}
-            placeholder='[{"project_name":"Ekiden","x_handle":"ekidenfi","funding_musd":2,"backed_by":"GSR","category":"DeFi","phase":"Testnet","status":"Live","chain":"Canton Network","cost":"Free","portal_url":"https://app.cnt.ekiden.fi/","website_url":"https://ekiden.fi/","summary":"Short summary","tasks":["Connect wallet","Trade testnet"]}]'
-          />
-
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button type="button" className="btn" onClick={importBulkProjects} disabled={bulkImporting || !bulkJson.trim()}>
-              <FileJson size={16} />
-              {bulkImporting ? "Importing..." : "Import JSON"}
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => setBulkJson("")}>
-              Clear JSON
-            </button>
-          </div>
-        </section>
 
         <form onSubmit={saveProject} className="glass mb-6 rounded-3xl p-5">
           <div className="mb-4 flex items-center gap-2">

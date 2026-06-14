@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type AuthMode = "login" | "signup";
+type MessageType = "info" | "error" | "already" | "invalid";
 
 type AuthModalProps = {
   open: boolean;
@@ -14,33 +15,48 @@ type AuthModalProps = {
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.abmhub.xyz").replace(/\/$/, "");
 
-function authMessage(message: string) {
+function parseAuthError(message: string) {
   const lower = message.toLowerCase();
 
   if (lower.includes("email rate limit") || lower.includes("rate limit")) {
-    return "Email limit reached. If you already have an account, use Login. New signup emails may need custom SMTP or waiting before retry.";
+    return {
+      type: "error" as MessageType,
+      text: "Email limit reached. Try again later. Existing users can still login with email and password.",
+    };
   }
 
   if (lower.includes("user already registered") || lower.includes("already registered") || lower.includes("already exists")) {
-    return "This email already has an account. Please use Login.";
+    return {
+      type: "already" as MessageType,
+      text: "Email already registered. Please login with your password.",
+    };
   }
 
   if (lower.includes("invalid login credentials")) {
-    return "Wrong email or password. If you are new, create account first. If you already signed up, confirm your email then login.";
+    return {
+      type: "invalid" as MessageType,
+      text: "Password incorrect. Check your password. If this email is new, create an account.",
+    };
   }
 
   if (lower.includes("email not confirmed")) {
-    return "Email not confirmed yet. Please open your confirmation email first, then login.";
+    return {
+      type: "error" as MessageType,
+      text: "Email not confirmed yet. Please open your confirmation email first, then login.",
+    };
   }
 
-  return message;
+  return {
+    type: "error" as MessageType,
+    text: message,
+  };
 }
 
 export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<{ type: MessageType; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -56,10 +72,15 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
 
   if (!open) return null;
 
+  function switchMode(nextMode: AuthMode) {
+    setMode(nextMode);
+    setMessage(null);
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
-    setMessage("");
+    setMessage(null);
 
     const cleanEmail = email.trim().toLowerCase();
 
@@ -72,7 +93,7 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
       setBusy(false);
 
       if (error) {
-        setMessage(authMessage(error.message));
+        setMessage(parseAuthError(error.message));
         return;
       }
 
@@ -94,10 +115,10 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
     setBusy(false);
 
     if (error) {
-      const friendlyMessage = authMessage(error.message);
-      setMessage(friendlyMessage);
+      const parsed = parseAuthError(error.message);
+      setMessage(parsed);
 
-      if (friendlyMessage.includes("already has an account")) {
+      if (parsed.type === "already") {
         setMode("login");
       }
 
@@ -105,7 +126,10 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
     }
 
     if (!data.session) {
-      setMessage("Signup request received. If this is a new email, check your inbox to confirm. If this email already has an account, use Login.");
+      setMessage({
+        type: "info",
+        text: "Account created. Please check your email to confirm, then login.",
+      });
       setMode("login");
       return;
     }
@@ -147,20 +171,14 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
           <button
             type="button"
             className={`rounded-xl px-3 py-2 text-sm font-extrabold ${mode === "login" ? "bg-white/10 text-white" : "text-slate-400"}`}
-            onClick={() => {
-              setMode("login");
-              setMessage("");
-            }}
+            onClick={() => switchMode("login")}
           >
             Login
           </button>
           <button
             type="button"
             className={`rounded-xl px-3 py-2 text-sm font-extrabold ${mode === "signup" ? "bg-white/10 text-white" : "text-slate-400"}`}
-            onClick={() => {
-              setMode("signup");
-              setMessage("");
-            }}
+            onClick={() => switchMode("signup")}
           >
             Sign Up
           </button>
@@ -195,18 +213,42 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
           </label>
 
           {message ? (
-            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-sm text-cyan-100">
-              {message}
+            <div
+              className={`rounded-xl border p-3 text-sm ${
+                message.type === "already"
+                  ? "border-amber-500/25 bg-amber-500/10 text-amber-100"
+                  : message.type === "invalid" || message.type === "error"
+                    ? "border-red-500/25 bg-red-500/10 text-red-100"
+                    : "border-cyan-500/20 bg-cyan-500/10 text-cyan-100"
+              }`}
+            >
+              <div>{message.text}</div>
+
+              {message.type === "invalid" ? (
+                <button
+                  type="button"
+                  className="mt-3 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-extrabold text-white hover:bg-white/15"
+                  onClick={() => switchMode("signup")}
+                >
+                  Create account instead
+                </button>
+              ) : null}
+
+              {message.type === "already" ? (
+                <button
+                  type="button"
+                  className="mt-3 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-extrabold text-white hover:bg-white/15"
+                  onClick={() => switchMode("login")}
+                >
+                  Go to login
+                </button>
+              ) : null}
             </div>
           ) : null}
 
           <button className="btn w-full" disabled={busy}>
             {busy ? "Please wait..." : mode === "signup" ? "Create Account" : "Login"}
           </button>
-
-          <p className="text-center text-xs leading-relaxed text-slate-500">
-            Existing users should use Login. Signup sends a confirmation email only for new accounts.
-          </p>
         </div>
       </form>
     </div>

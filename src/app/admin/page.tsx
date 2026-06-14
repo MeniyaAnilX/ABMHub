@@ -14,6 +14,9 @@ const statuses: ProjectStatus[] = ["Live", "Trending", "Ended"];
 const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "BNB Chain", "Other"];
 const costs: Cost[] = ["Free", "Low Gas", "Paid"];
 
+type AdminSection = "airdrop" | "gaming";
+type RedemptionFilter = "pending" | "approved" | "all";
+
 
 type GamingRedemption = {
   id: string;
@@ -32,6 +35,8 @@ type GamingSettings = {
   id: string;
   youtube_short_url: string | null;
   youtube_reward_points: number;
+  cpalead_offerwall_url: string | null;
+  torox_offerwall_url: string | null;
   updated_at: string;
 };
 
@@ -143,9 +148,11 @@ export default function AdminPage() {
   const [toast, setToast] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [adminSection, setAdminSection] = useState<AdminSection>("airdrop");
+  const [redemptionFilter, setRedemptionFilter] = useState<RedemptionFilter>("pending");
   const [redemptions, setRedemptions] = useState<GamingRedemption[]>([]);
   const [redemptionCodes, setRedemptionCodes] = useState<Record<string, string>>({});
-  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, updated_at: "" });
+  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, cpalead_offerwall_url: "", torox_offerwall_url: "", updated_at: "" });
   const [gamingLedger, setGamingLedger] = useState<GamingLedger[]>([]);
   const [gamingUsers, setGamingUsers] = useState<GamingUser[]>([]);
   const [gamingSearch, setGamingSearch] = useState("");
@@ -235,6 +242,8 @@ export default function AdminPage() {
         id: "main",
         youtube_short_url: gamingSettings.youtube_short_url?.trim() || "",
         youtube_reward_points: points,
+        cpalead_offerwall_url: gamingSettings.cpalead_offerwall_url?.trim() || "",
+        torox_offerwall_url: gamingSettings.torox_offerwall_url?.trim() || "",
         updated_at: new Date().toISOString(),
       }, { onConflict: "id" });
 
@@ -575,9 +584,12 @@ export default function AdminPage() {
         item.points_cost,
       ].join(" ").toLowerCase();
 
-      return !text || searchText.includes(text);
+      const matchesSearch = !text || searchText.includes(text);
+      const matchesStatus = redemptionFilter === "all" || item.status === redemptionFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [redemptions, gamingSearch]);
+  }, [redemptions, gamingSearch, redemptionFilter]);
 
   const filteredLedger = useMemo(() => {
     const text = gamingSearch.trim().toLowerCase();
@@ -626,6 +638,15 @@ export default function AdminPage() {
         </div>
 
         {message && <div className="glass mb-4 rounded-2xl p-4 text-sm text-cyan-200">{message}</div>}
+
+        <section className="mb-5 flex max-w-full gap-3 overflow-x-auto pb-1">
+          <button className={`section-tab ${adminSection === "airdrop" ? "active" : ""}`} onClick={() => setAdminSection("airdrop")}>
+            Airdrop Admin
+          </button>
+          <button className={`section-tab ${adminSection === "gaming" ? "active" : ""}`} onClick={() => setAdminSection("gaming")}>
+            Gaming Admin
+          </button>
+        </section>
 
         <form onSubmit={saveProject} className="glass mb-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 flex items-center gap-2">
@@ -809,31 +830,51 @@ export default function AdminPage() {
             <p className="text-sm text-slate-400">Update daily YouTube Short link and reward points.</p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-            <label className="grid gap-2 text-sm text-slate-300">
-              Daily YouTube Short URL
-              <input
-                className="form-field"
-                value={gamingSettings.youtube_short_url || ""}
-                onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_short_url: event.target.value }))}
-                placeholder="https://youtube.com/shorts/..."
-              />
-            </label>
+          <div className="grid gap-3">
+            <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+              <label className="grid gap-2 text-sm text-slate-300">
+                Daily YouTube Short URL
+                <input
+                  className="form-field"
+                  value={gamingSettings.youtube_short_url || ""}
+                  onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_short_url: event.target.value }))}
+                  placeholder="https://youtube.com/shorts/..."
+                />
+              </label>
 
-            <label className="grid gap-2 text-sm text-slate-300">
-              Reward Points
-              <input
-                className="form-field"
-                type="number"
-                min="1"
-                value={gamingSettings.youtube_reward_points}
-                onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_reward_points: Number(event.target.value || 10) }))}
-              />
-            </label>
-
-            <div className="flex items-end">
-              <button type="button" className="btn w-full" onClick={saveGamingSettings}>Save Gaming</button>
+              <label className="grid gap-2 text-sm text-slate-300">
+                Reward Points
+                <input
+                  className="form-field"
+                  type="number"
+                  min="1"
+                  value={gamingSettings.youtube_reward_points}
+                  onChange={(event) => setGamingSettings((current) => ({ ...current, youtube_reward_points: Number(event.target.value || 10) }))}
+                />
+              </label>
             </div>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              CPAlead Offerwall URL
+              <input
+                className="form-field"
+                value={gamingSettings.cpalead_offerwall_url || ""}
+                onChange={(event) => setGamingSettings((current) => ({ ...current, cpalead_offerwall_url: event.target.value }))}
+                placeholder="Paste CPAlead offerwall link. Use {USER_ID} or {SUBID} placeholder if needed."
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Torox Offerwall URL
+              <input
+                className="form-field"
+                value={gamingSettings.torox_offerwall_url || ""}
+                onChange={(event) => setGamingSettings((current) => ({ ...current, torox_offerwall_url: event.target.value }))}
+                placeholder="Paste Torox offerwall link. Use {USER_ID} or {SUBID} placeholder if needed."
+              />
+            </label>
+
+            <button type="button" className="btn w-full" onClick={saveGamingSettings}>Save Gaming Settings</button>
           </div>
         </section>
 
@@ -841,7 +882,7 @@ export default function AdminPage() {
         <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4">
             <h2 className="text-lg font-extrabold tracking-tight">Gaming Users & Points Control</h2>
-            <p className="text-sm text-slate-400">Search user email, check data, and add or cut points manually.</p>
+            <p className="text-sm text-slate-400">Search any user email, see approved/pending points, requests, and add or cut points.</p>
           </div>
 
           <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto]">
@@ -917,9 +958,14 @@ export default function AdminPage() {
           <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
             <div>
               <h2 className="text-lg font-extrabold tracking-tight">Gaming Redeem Requests</h2>
-              <p className="text-sm text-slate-400">Approve only after checking points and giving a real gift card code.</p>
+              <p className="text-sm text-slate-400">Pending requests are already cut from user approved points. Reject refunds points; approve keeps them cut.</p>
             </div>
-            <button type="button" className="btn btn-ghost" onClick={loadRedemptions}>Refresh</button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={`section-tab !px-4 !py-2 ${redemptionFilter === "pending" ? "active" : ""}`} onClick={() => setRedemptionFilter("pending")}>Pending</button>
+              <button type="button" className={`section-tab !px-4 !py-2 ${redemptionFilter === "approved" ? "active" : ""}`} onClick={() => setRedemptionFilter("approved")}>Approved</button>
+              <button type="button" className={`section-tab !px-4 !py-2 ${redemptionFilter === "all" ? "active" : ""}`} onClick={() => setRedemptionFilter("all")}>All</button>
+              <button type="button" className="btn btn-ghost" onClick={loadRedemptions}>Refresh</button>
+            </div>
           </div>
 
           <div className="grid gap-3">
@@ -1016,6 +1062,8 @@ export default function AdminPage() {
           </div>
         </section>
 
+          </>
+        ) : null}
       </main>
     </>
   );

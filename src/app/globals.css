@@ -528,3 +528,12 @@ input[type="number"].form-field::-webkit-inner-spin-button {
   border-radius: 1rem;
   padding: .75rem;
 }
+
+
+/* ABMHub v42: simple admin tabs + offerwall + copy button */
+.admin-section-card {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.15);
+  border-radius: 1rem;
+  padding: 1rem;
+}

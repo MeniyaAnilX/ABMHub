@@ -44,12 +44,29 @@ type GamingSettings = {
   id: string;
   youtube_short_url: string | null;
   youtube_reward_points: number;
+  cpalead_offerwall_url: string | null;
+  torox_offerwall_url: string | null;
   updated_at: string;
 };
 
 function formatInrFromPoints(points: number) {
   const value = points / 100;
   return Number.isInteger(value) ? `₹${value}` : `₹${value.toFixed(2)}`;
+}
+
+function buildOfferwallUrl(template: string, user: User | null) {
+  if (!user || !template.trim()) return "";
+
+  const email = encodeURIComponent(user.email || "");
+  const userId = encodeURIComponent(user.id);
+
+  return template
+    .replaceAll("{USER_ID}", userId)
+    .replaceAll("{user_id}", userId)
+    .replaceAll("{SUBID}", userId)
+    .replaceAll("{subid}", userId)
+    .replaceAll("{EMAIL}", email)
+    .replaceAll("{email}", email);
 }
 
 export default function PublicHomePage() {
@@ -378,16 +395,10 @@ export default function PublicHomePage() {
       return;
     }
 
-    const rewardName = `${formatInrFromPoints(pointsCost)} Google Play Gift Card`;
-
     setGamingBusy("custom_redeem");
 
-    const { error } = await supabase.from("gaming_redemptions").insert({
-      user_id: user.id,
-      user_email: user.email || null,
-      reward_name: rewardName,
-      points_cost: pointsCost,
-      status: "pending",
+    const { error } = await supabase.rpc("request_gaming_redemption", {
+      points_cost_input: pointsCost,
     });
 
     setGamingBusy("");
@@ -397,8 +408,35 @@ export default function PublicHomePage() {
       return;
     }
 
-    showToast("Redeem request sent for admin approval.");
+    showToast("Redeem request sent. Points cut instantly until admin review.");
     await loadGamingData(user.id);
+  }
+
+  function openOfferwall(name: "CPAlead" | "Torox") {
+    if (!user) {
+      setAuthOpen(true);
+      showToast("Login to open offerwall.");
+      return;
+    }
+
+    const template = name === "CPAlead" ? gamingSettings?.cpalead_offerwall_url : gamingSettings?.torox_offerwall_url;
+    const url = buildOfferwallUrl(template || "", user);
+
+    if (!url) {
+      showToast(`${name} offerwall link not added in admin yet.`);
+      return;
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  async function copyCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      showToast("Code copied.");
+    } catch {
+      showToast("Copy failed. Please copy manually.");
+    }
   }
 
   const filteredProjects = useMemo(() => {
@@ -578,11 +616,11 @@ export default function PublicHomePage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
+                <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                   <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
                       <Coins size={14} />
-                      Approved
+                      Approved Points
                     </div>
                     <div className="text-2xl font-black text-emerald-300">{gamingStats.approvedPoints}</div>
                   </div>
@@ -590,17 +628,9 @@ export default function PublicHomePage() {
                   <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
                       <Clock3 size={14} />
-                      Pending
+                      Pending Points
                     </div>
                     <div className="text-2xl font-black text-amber-300">{gamingStats.pendingPoints}</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                      <Gift size={14} />
-                      Redeemable
-                    </div>
-                    <div className="text-2xl font-black text-cyan-300">{gamingStats.availablePoints}</div>
                   </div>
                 </div>
               </div>
@@ -670,12 +700,17 @@ export default function PublicHomePage() {
                       <div>
                         <h3 className="font-extrabold text-amber-100">Offerwall Tasks</h3>
                         <p className="mt-1 text-sm text-amber-100/70">
-                          Lootably / CPAlead integration placeholder. Use postback later so points are approved only after real payout.
+                          Open CPAlead or Torox offerwall. Points should be added by postback/confirmation, not instantly.
                         </p>
                       </div>
-                      <button className="btn btn-ghost max-sm:w-full" onClick={() => showToast("Offerwall integration coming in next build.")}>
-                        Coming Soon
-                      </button>
+                      <div className="grid gap-2 max-sm:w-full">
+                        <button className="btn btn-ghost max-sm:w-full" onClick={() => openOfferwall("CPAlead")}>
+                          Open CPAlead
+                        </button>
+                        <button className="btn btn-ghost max-sm:w-full" onClick={() => openOfferwall("Torox")}>
+                          Open Torox
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -754,8 +789,11 @@ export default function PublicHomePage() {
                             </span>
                           </div>
                           {item.reward_code ? (
-                            <div className="mt-2 rounded-lg border border-emerald-400/15 bg-emerald-400/10 p-2 text-emerald-100">
-                              Code: <b>{item.reward_code}</b>
+                            <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-emerald-400/15 bg-emerald-400/10 p-2 text-emerald-100 max-sm:flex-col max-sm:items-start">
+                              <span>Code: <b>{item.reward_code}</b></span>
+                              <button type="button" className="rounded-lg border border-white/10 bg-white/10 px-3 py-1 text-xs font-extrabold text-white" onClick={() => copyCode(item.reward_code || "")}>
+                                Copy
+                              </button>
                             </div>
                           ) : null}
                         </div>

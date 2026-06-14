@@ -152,74 +152,70 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
           </button>
         </div>
 
-        <div className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5">
+        <div className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
           <div className="mb-2 text-sm font-extrabold">Summary</div>
           <p className="text-sm leading-relaxed text-slate-400">
             {project.summary || "Project details and links."}
           </p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[1.15fr_.85fr] max-sm:gap-4">
-          <div className="grid gap-5">
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
-              <h3 className="mb-4 text-base font-extrabold tracking-tight">Project Snapshot</h3>
-              <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
-                <DetailBox label="Backed by" value={project.backed_by} />
-                <DetailBox label="Phase" value={project.phase} />
-                <DetailBox label="Status" value={project.status} />
-                <DetailBox label="Quest" value={questLabel} />
-                <DetailBox label="Chain" value={project.chain} />
-                <DetailBox label="Cost" value={project.cost} />
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
-              <h3 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h3>
-              <div className="break-words text-sm leading-7 text-slate-300">
-                {renderTaskText(project.tasks)}
-              </div>
+        <div className="mb-5 grid gap-5 lg:grid-cols-[1.15fr_.85fr] max-sm:gap-4">
+          <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">Project Snapshot</h3>
+            <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+              <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
+              <DetailBox label="Backed by" value={project.backed_by} />
+              <DetailBox label="Phase" value={project.phase} />
+              <DetailBox label="Status" value={project.status} />
+              <DetailBox label="Quest" value={questLabel} />
+              <DetailBox label="Chain" value={project.chain} />
+              <DetailBox label="Cost" value={project.cost} />
             </div>
           </div>
 
-          <div className="grid gap-5 content-start">
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
-              <h3 className="mb-4 text-base font-extrabold tracking-tight">Official Links</h3>
-              <div className="grid gap-3">
-                <a href={xUrl} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
-                  <ExternalLink size={16} />
-                  Open X
+          <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">Official Links</h3>
+            <div className="grid gap-3">
+              <a href={xUrl} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                <ExternalLink size={16} />
+                Open X
+              </a>
+
+              {project.discord_url ? (
+                <a href={project.discord_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                  <MessageCircle size={16} />
+                  Join Discord
                 </a>
+              ) : null}
 
-                {project.discord_url ? (
-                  <a href={project.discord_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
-                    <MessageCircle size={16} />
-                    Join Discord
-                  </a>
-                ) : null}
-
-                {project.website_url ? (
-                  <a href={project.website_url} target="_blank" rel="noreferrer" className="btn justify-start">
-                    <Globe size={16} />
-                    Visit Website
-                  </a>
-                ) : null}
-              </div>
+              {project.website_url ? (
+                <a href={project.website_url} target="_blank" rel="noreferrer" className="btn justify-start">
+                  <Globe size={16} />
+                  Visit Website
+                </a>
+              ) : null}
             </div>
+          </div>
+        </div>
 
-            {questLinks.length ? (
-              <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
-                <h3 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h3>
-                <div className="grid gap-3">
-                  {questLinks.map((link) => (
-                    <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
-                      <Trophy size={16} />
-                      Open {link.platform}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+        {questLinks.length ? (
+          <div className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h3>
+            <div className="grid gap-3 md:grid-cols-2">
+              {questLinks.map((link) => (
+                <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                  <Trophy size={16} />
+                  Open {link.platform}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+          <h3 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h3>
+          <div className="break-words text-sm leading-7 text-slate-300">
+            {renderTaskText(project.tasks)}
           </div>
         </div>
       </section>

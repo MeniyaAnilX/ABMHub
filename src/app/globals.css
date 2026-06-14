@@ -203,48 +203,6 @@ button, input, select, textarea {
 }
 
 
-/* ABMHub v8: full no-glow mode */
-* {
-  box-shadow: none !important;
-}
-
-.no-glow,
-.no-glow * {
-  box-shadow: none !important;
-  text-shadow: none !important;
-  filter: none !important;
-}
-
-.smooth-card {
-  transition: border-color 0.16s ease, background 0.16s ease;
-}
-
-.smooth-card:hover {
-  transform: none !important;
-  border-color: rgba(255,255,255,0.16) !important;
-  background: rgba(15, 23, 42, 0.88) !important;
-}
-
-.section-tab.active {
-  color: white;
-  border-color: rgba(255,255,255,0.18);
-  background: rgba(37, 99, 235, 0.65);
-}
-
-.search-field {
-  padding-left: 44px !important;
-}
-
-.modal-backdrop-flat {
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: none;
-}
-
-.flat-logo {
-  background: #7c3aed !important;
-}
-
-
 /* ABMHub v9 modal transparency fix */
 .project-modal-opaque,
 .project-modal-opaque * {
@@ -254,3 +212,132 @@ button, input, select, textarea {
 .project-modal-opaque {
   background: #0b1220 !important;
 }
+
+
+/* ABMHub v10: minimal premium glow, no mouse tracking, no lag */
+:root {
+  --soft-glow-blue: rgba(59, 130, 246, 0.14);
+  --soft-glow-purple: rgba(139, 92, 246, 0.12);
+  --soft-glow-cyan: rgba(34, 211, 238, 0.10);
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(59, 130, 246, 0.10), transparent 26%),
+    radial-gradient(circle at 88% 12%, rgba(139, 92, 246, 0.10), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(34, 211, 238, 0.06), transparent 32%),
+    linear-gradient(180deg, #060a13, #030712 78%) !important;
+}
+
+body::before {
+  content: "" !important;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.glass {
+  border: 1px solid rgba(255,255,255,0.105) !important;
+  background:
+    linear-gradient(180deg, rgba(18, 27, 48, 0.92), rgba(10, 16, 30, 0.90)) !important;
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(34, 211, 238, 0.025),
+    inset 0 1px 0 rgba(255,255,255,0.045) !important;
+}
+
+.smooth-card {
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.24),
+    0 0 18px rgba(59, 130, 246, 0.035) !important;
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease !important;
+}
+
+.smooth-card:hover {
+  transform: none !important;
+  border-color: rgba(34, 211, 238, 0.22) !important;
+  background:
+    linear-gradient(180deg, rgba(22, 32, 56, 0.96), rgba(11, 17, 32, 0.94)) !important;
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, 0.30),
+    0 0 22px rgba(34, 211, 238, 0.075) !important;
+}
+
+.flat-logo {
+  background: linear-gradient(135deg, #4f46e5, #8b5cf6) !important;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.20) !important;
+}
+
+.btn {
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.14) !important;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #6d28d9) !important;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.18) !important;
+}
+
+.btn-ghost {
+  background: rgba(255,255,255,0.045) !important;
+  box-shadow: none !important;
+}
+
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.07) !important;
+  box-shadow: 0 0 12px rgba(255,255,255,0.035) !important;
+}
+
+.section-tab.active {
+  color: white !important;
+  border-color: rgba(34, 211, 238, 0.24) !important;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.70), rgba(124, 58, 237, 0.62)) !important;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.12) !important;
+}
+
+.section-tab:not(.active):hover {
+  box-shadow: 0 0 10px rgba(255,255,255,0.035) !important;
+}
+
+.form-field {
+  background: rgba(8, 14, 27, 0.88) !important;
+  border-color: rgba(255,255,255,0.09) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+.form-field:focus {
+  border-color: rgba(34, 211, 238, 0.30) !important;
+  box-shadow:
+    0 0 0 3px rgba(34, 211, 238, 0.055),
+    inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+.modal-backdrop-flat,
+.fixed.inset-0.z-50.grid {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(59, 130, 246, 0.08), transparent 30%),
+    rgba(2, 6, 23, 0.94) !important;
+}
+
+.no-glow {
+  box-shadow:
+    0 24px 70px rgba(0,0,0,0.38),
+    0 0 28px rgba(59, 130, 246, 0.05) !important;
+}
+
+.no-glow * {
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.project-modal-opaque,
+.project-modal-opaque * {
+  backdrop-filter: none !important;
+}
+

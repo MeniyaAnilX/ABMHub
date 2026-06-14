@@ -1,11 +1,64 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+node_modules/
+dist/
+.env.local
+.env.*.local
+.vercel/
+config.txt
+*.log
+*.bat
+*.sql
+ABMFIX_*.md
+README_ABMHUB.md
+GITHUB_CLEAN_CHECKLIST.txt
 node_modules/
 .next/
+out/
+dist/
 .env
 .env.local
 .env.*.local
-out/
-dist/
-.DS_Store
+.vercel/
 *.log
-.vercel
+*.pem
+.DS_Store
 config.txt
+*.bat
+*.sql
+ABMFIX_*.md
+GITHUB_CLEAN_CHECKLIST.txt

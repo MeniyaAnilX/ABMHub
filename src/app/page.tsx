@@ -9,7 +9,7 @@ import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
-import { CheckCircle2, Clock3, Coins, Gamepad2, Gift, Heart, LineChart, Rocket, Search, ShieldCheck, Star, Trophy, Youtube } from "lucide-react";
+import { CheckCircle2, Clock3, Coins, Gamepad2, Gift, Heart, LineChart, Rocket, Search, ShieldCheck, Star, Trophy } from "lucide-react";
 
 type SortMode = "newest" | "az" | "funding";
 type Section = "airdrop" | "trading" | "gaming";
@@ -441,17 +441,12 @@ export default function PublicHomePage() {
       .filter((item) => item.status === "pending")
       .reduce((sum, item) => sum + Math.max(0, Number(item.points || 0)), 0);
 
-    const pendingRedeemCost = gamingRedemptions
-      .filter((item) => item.status === "pending")
-      .reduce((sum, item) => sum + Number(item.points_cost || 0), 0);
-
     return {
       approvedPoints,
       pendingPoints,
-      pendingRedeemCost,
-      availablePoints: Math.max(0, approvedPoints - pendingRedeemCost),
+      availablePoints: Math.max(0, approvedPoints),
     };
-  }, [gamingLedger, gamingRedemptions]);
+  }, [gamingLedger]);
 
   function hasClaimedServerToday(source: string) {
     if (!user || !serverTodayKey) return false;
@@ -652,7 +647,7 @@ export default function PublicHomePage() {
                         </p>
                         {gamingSettings?.youtube_short_url ? (
                           <a href={gamingSettings.youtube_short_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-red-300 hover:underline">
-                            <Youtube size={14} />
+                            <span className="text-xs font-black">▶</span>
                             Open today&apos;s short
                           </a>
                         ) : (
@@ -664,7 +659,7 @@ export default function PublicHomePage() {
                         disabled={!user || !gamingSettings?.youtube_short_url || gamingBusy === "youtube_short" || hasClaimedServerToday("youtube_short")}
                         onClick={claimYouTubeShort}
                       >
-                        <Youtube size={16} />
+                        <span className="text-sm font-black">▶</span>
                         {hasClaimedServerToday("youtube_short") ? "Claimed" : `Watch +${gamingSettings?.youtube_reward_points || 10} Points`}
                       </button>
                     </div>

@@ -35,6 +35,34 @@ type GamingSettings = {
   updated_at: string;
 };
 
+type GamingLedger = {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  points: number;
+  source: string;
+  task_key: string | null;
+  status: "approved" | "pending" | "rejected";
+  note: string | null;
+  created_at: string;
+};
+
+type GamingUser = {
+  user_id: string;
+  email: string | null;
+  created_at: string;
+  approved_points: number;
+  pending_points: number;
+  redemption_count: number;
+};
+
+type ManualPointsForm = {
+  email: string;
+  points: string;
+  status: "approved" | "pending" | "rejected";
+  note: string;
+};
+
 type FormState = {
   id?: string;
   project_name: string;
@@ -118,6 +146,10 @@ export default function AdminPage() {
   const [redemptions, setRedemptions] = useState<GamingRedemption[]>([]);
   const [redemptionCodes, setRedemptionCodes] = useState<Record<string, string>>({});
   const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, updated_at: "" });
+  const [gamingLedger, setGamingLedger] = useState<GamingLedger[]>([]);
+  const [gamingUsers, setGamingUsers] = useState<GamingUser[]>([]);
+  const [gamingSearch, setGamingSearch] = useState("");
+  const [manualPoints, setManualPoints] = useState<ManualPointsForm>({ email: "", points: "1000", status: "approved", note: "Manual admin points" });
   const tasksRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -151,6 +183,8 @@ export default function AdminPage() {
       setCheckingAuth(false);
       loadProjects();
       loadRedemptions();
+      loadGamingLedger();
+      searchGamingUsers();
       loadGamingSettings();
     }
 
@@ -163,6 +197,11 @@ export default function AdminPage() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "gaming_redemptions" }, () => {
         loadRedemptions();
+        searchGamingUsers();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gaming_points_ledger" }, () => {
+        loadGamingLedger();
+        searchGamingUsers();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "gaming_settings" }, () => {
         loadGamingSettings();
@@ -216,61 +255,93 @@ export default function AdminPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
+      setMessage(error.message);
       return;
     }
 
     setRedemptions((data || []) as GamingRedemption[]);
   }
 
+  async function loadGamingLedger() {
+    const { data, error } = await supabase
+      .from("gaming_points_ledger")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    if (error) {
+      return;
+    }
+
+    setGamingLedger((data || []) as GamingLedger[]);
+  }
+
+  async function searchGamingUsers() {
+    const { data, error } = await supabase.rpc("admin_search_gaming_users", {
+      search_text: gamingSearch.trim() || null,
+    });
+
+    if (error) {
+      return;
+    }
+
+    setGamingUsers((data || []) as GamingUser[]);
+  }
+
+  async function addManualGamingPoints() {
+    const points = Math.floor(Number(manualPoints.points || 0));
+    const email = manualPoints.email.trim().toLowerCase();
+
+    if (!email) {
+      setMessage("Enter user email first.");
+      return;
+    }
+
+    if (!Number.isFinite(points) || points === 0) {
+      setMessage("Points cannot be zero.");
+      return;
+    }
+
+    const { error } = await supabase.rpc("admin_add_gaming_points", {
+      target_email: email,
+      points_amount: points,
+      point_status: manualPoints.status,
+      note_text: manualPoints.note.trim() || "Manual admin points",
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setToast("Gaming points updated.");
+    setTimeout(() => setToast(""), 2600);
+    await Promise.all([loadGamingLedger(), searchGamingUsers()]);
+  }
+
   async function approveRedemption(redemption: GamingRedemption) {
     const code = (redemptionCodes[redemption.id] || "").trim();
 
-    const { error: updateError } = await supabase
-      .from("gaming_redemptions")
-      .update({
-        status: "approved",
-        reward_code: code || null,
-        admin_note: "Approved by admin",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", redemption.id);
+    const { error } = await supabase.rpc("admin_approve_gaming_redemption", {
+      redemption_id: redemption.id,
+      gift_code: code || null,
+    });
 
-    if (updateError) {
-      setMessage(updateError.message);
+    if (error) {
+      setMessage(error.message);
       return;
     }
 
-    const { error: ledgerError } = await supabase
-      .from("gaming_points_ledger")
-      .upsert({
-        user_id: redemption.user_id,
-        user_email: redemption.user_email,
-        points: -Math.abs(Number(redemption.points_cost || 0)),
-        source: "redeem_spent",
-        task_key: `redeem-spent-${redemption.id}`,
-        status: "approved",
-        note: `${redemption.reward_name} approved`,
-      }, { onConflict: "task_key" });
-
-    if (ledgerError) {
-      setMessage("Redeem approved, but point deduction failed: " + ledgerError.message);
-      return;
-    }
-
-    setToast("Redeem approved.");
+    setToast("Redeem approved and points deducted.");
     setTimeout(() => setToast(""), 2600);
-    loadRedemptions();
+    await Promise.all([loadRedemptions(), loadGamingLedger(), searchGamingUsers()]);
   }
 
   async function rejectRedemption(redemption: GamingRedemption) {
-    const { error } = await supabase
-      .from("gaming_redemptions")
-      .update({
-        status: "rejected",
-        admin_note: "Rejected by admin",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", redemption.id);
+    const { error } = await supabase.rpc("admin_reject_gaming_redemption", {
+      redemption_id: redemption.id,
+      reject_note: "Rejected by admin",
+    });
 
     if (error) {
       setMessage(error.message);
@@ -279,7 +350,7 @@ export default function AdminPage() {
 
     setToast("Redeem rejected.");
     setTimeout(() => setToast(""), 2600);
-    loadRedemptions();
+    await Promise.all([loadRedemptions(), searchGamingUsers()]);
   }
 
 
@@ -491,6 +562,40 @@ export default function AdminPage() {
       return !text || searchText.includes(text);
     });
   }, [projects, query]);
+
+  const filteredRedemptions = useMemo(() => {
+    const text = gamingSearch.trim().toLowerCase();
+
+    return redemptions.filter((item) => {
+      const searchText = [
+        item.user_email,
+        item.user_id,
+        item.reward_name,
+        item.status,
+        item.points_cost,
+      ].join(" ").toLowerCase();
+
+      return !text || searchText.includes(text);
+    });
+  }, [redemptions, gamingSearch]);
+
+  const filteredLedger = useMemo(() => {
+    const text = gamingSearch.trim().toLowerCase();
+
+    return gamingLedger.filter((item) => {
+      const searchText = [
+        item.user_email,
+        item.user_id,
+        item.points,
+        item.source,
+        item.status,
+        item.note,
+        item.created_at,
+      ].join(" ").toLowerCase();
+
+      return !text || searchText.includes(text);
+    });
+  }, [gamingLedger, gamingSearch]);
 
   if (checkingAuth) {
     return (
@@ -732,6 +837,82 @@ export default function AdminPage() {
           </div>
         </section>
 
+
+        <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-extrabold tracking-tight">Gaming Users & Points Control</h2>
+            <p className="text-sm text-slate-400">Search user email, check data, and add or cut points manually.</p>
+          </div>
+
+          <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto]">
+            <input
+              className="form-field"
+              value={gamingSearch}
+              onChange={(event) => setGamingSearch(event.target.value)}
+              placeholder="Search user email, request, source..."
+            />
+            <button type="button" className="btn btn-ghost" onClick={() => {
+              searchGamingUsers();
+              loadRedemptions();
+              loadGamingLedger();
+            }}>
+              Search / Refresh
+            </button>
+          </div>
+
+          <div className="mb-5 grid gap-3 md:grid-cols-[1fr_150px_160px_1fr_auto]">
+            <input
+              className="form-field"
+              value={manualPoints.email}
+              onChange={(event) => setManualPoints((current) => ({ ...current, email: event.target.value }))}
+              placeholder="User email"
+            />
+            <input
+              className="form-field"
+              type="number"
+              value={manualPoints.points}
+              onChange={(event) => setManualPoints((current) => ({ ...current, points: event.target.value }))}
+              placeholder="Points"
+            />
+            <select
+              className="form-field"
+              value={manualPoints.status}
+              onChange={(event) => setManualPoints((current) => ({ ...current, status: event.target.value as ManualPointsForm["status"] }))}
+            >
+              <option value="approved">approved</option>
+              <option value="pending">pending</option>
+              <option value="rejected">rejected</option>
+            </select>
+            <input
+              className="form-field"
+              value={manualPoints.note}
+              onChange={(event) => setManualPoints((current) => ({ ...current, note: event.target.value }))}
+              placeholder="Note"
+            />
+            <button type="button" className="btn" onClick={addManualGamingPoints}>Add / Cut</button>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-3">
+            {gamingUsers.length ? gamingUsers.slice(0, 9).map((item) => (
+              <div key={item.user_id} className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                <div className="mb-2 break-all text-sm font-extrabold text-white">{item.email || item.user_id}</div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+                  <span>Approved</span>
+                  <b className="text-right text-emerald-300">{item.approved_points}</b>
+                  <span>Pending</span>
+                  <b className="text-right text-amber-300">{item.pending_points}</b>
+                  <span>Requests</span>
+                  <b className="text-right text-cyan-300">{item.redemption_count}</b>
+                </div>
+              </div>
+            )) : (
+              <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400 lg:col-span-3">
+                No users found. Run v41 SQL functions, then search again.
+              </div>
+            )}
+          </div>
+        </section>
+
         <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
             <div>
@@ -742,7 +923,7 @@ export default function AdminPage() {
           </div>
 
           <div className="grid gap-3">
-            {redemptions.length ? redemptions.map((redemption) => (
+            {filteredRedemptions.length ? filteredRedemptions.map((redemption) => (
               <div key={redemption.id} className="rounded-2xl border border-white/10 bg-black/15 p-4">
                 <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
                   <div>
@@ -789,6 +970,47 @@ export default function AdminPage() {
             )) : (
               <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400">
                 No redeem requests yet.
+              </div>
+            )}
+          </div>
+        </section>
+
+
+        <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
+          <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
+            <div>
+              <h2 className="text-lg font-extrabold tracking-tight">Gaming Points Ledger</h2>
+              <p className="text-sm text-slate-400">Approved, pending, rejected, manual adjustments, and redeem cuts.</p>
+            </div>
+            <button type="button" className="btn btn-ghost" onClick={loadGamingLedger}>Refresh</button>
+          </div>
+
+          <div className="grid gap-2">
+            {filteredLedger.length ? filteredLedger.slice(0, 100).map((item) => (
+              <div key={item.id} className="grid gap-2 rounded-2xl border border-white/10 bg-black/15 p-3 text-sm md:grid-cols-[1.1fr_100px_110px_1fr]">
+                <div className="break-all">
+                  <b>{item.user_email || item.user_id}</b>
+                  <div className="text-xs text-slate-500">{new Date(item.created_at).toLocaleString()}</div>
+                </div>
+                <div className={Number(item.points) >= 0 ? "font-extrabold text-emerald-300" : "font-extrabold text-red-300"}>
+                  {Number(item.points) >= 0 ? "+" : ""}{item.points}
+                </div>
+                <div className={`font-bold ${
+                  item.status === "approved"
+                    ? "text-emerald-300"
+                    : item.status === "pending"
+                      ? "text-amber-300"
+                      : "text-red-300"
+                }`}>
+                  {item.status}
+                </div>
+                <div className="text-slate-400">
+                  {item.source} {item.note ? `• ${item.note}` : ""}
+                </div>
+              </div>
+            )) : (
+              <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400">
+                No ledger rows found.
               </div>
             )}
           </div>

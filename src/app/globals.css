@@ -519,3 +519,12 @@ input[type="number"].form-field::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+
+/* ABMHub v41 gaming admin full control */
+.gaming-ledger-row {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.15);
+  border-radius: 1rem;
+  padding: .75rem;
+}

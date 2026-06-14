@@ -44,6 +44,7 @@ type GamingSettings = {
   id: string;
   youtube_short_url: string | null;
   youtube_reward_points: number;
+  offerwall_url: string | null;
   cpalead_offerwall_url: string | null;
   torox_offerwall_url: string | null;
   updated_at: string;
@@ -412,24 +413,6 @@ export default function PublicHomePage() {
     await loadGamingData(user.id);
   }
 
-  function openOfferwall(name: "CPAlead" | "Torox") {
-    if (!user) {
-      setAuthOpen(true);
-      showToast("Login to open offerwall.");
-      return;
-    }
-
-    const template = name === "CPAlead" ? gamingSettings?.cpalead_offerwall_url : gamingSettings?.torox_offerwall_url;
-    const url = buildOfferwallUrl(template || "", user);
-
-    if (!url) {
-      showToast(`${name} offerwall link not added in admin yet.`);
-      return;
-    }
-
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-
   async function copyCode(code: string) {
     try {
       await navigator.clipboard.writeText(code);
@@ -491,6 +474,14 @@ export default function PublicHomePage() {
     const key = `${source}-${user.id}-${serverTodayKey}`;
     return gamingLedger.some((item) => item.task_key === key);
   }
+
+  const activeOfferwallTemplate =
+    gamingSettings?.offerwall_url ||
+    gamingSettings?.cpalead_offerwall_url ||
+    gamingSettings?.torox_offerwall_url ||
+    "";
+
+  const activeOfferwallUrl = buildOfferwallUrl(activeOfferwallTemplate, user);
 
   return (
     <>
@@ -675,14 +666,9 @@ export default function PublicHomePage() {
                         <p className="mt-1 text-sm text-slate-400">
                           Watch today&apos;s ABM short and claim daily points. Link resets by Supabase IST date.
                         </p>
-                        {gamingSettings?.youtube_short_url ? (
-                          <a href={gamingSettings.youtube_short_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-red-300 hover:underline">
-                            <span className="text-xs font-black">▶</span>
-                            Open today&apos;s short
-                          </a>
-                        ) : (
+                        {!gamingSettings?.youtube_short_url ? (
                           <p className="mt-2 text-xs text-amber-300">Admin has not added today&apos;s short yet.</p>
-                        )}
+                        ) : null}
                       </div>
                       <button
                         className="btn max-sm:w-full"
@@ -696,22 +682,32 @@ export default function PublicHomePage() {
                   </div>
 
                   <div className="rounded-2xl border border-amber-400/15 bg-amber-400/10 p-4">
-                    <div className="flex items-start justify-between gap-4 max-sm:flex-col">
-                      <div>
-                        <h3 className="font-extrabold text-amber-100">Offerwall Tasks</h3>
-                        <p className="mt-1 text-sm text-amber-100/70">
-                          Open CPAlead or Torox offerwall. Points should be added by postback/confirmation, not instantly.
-                        </p>
-                      </div>
-                      <div className="grid gap-2 max-sm:w-full">
-                        <button className="btn btn-ghost max-sm:w-full" onClick={() => openOfferwall("CPAlead")}>
-                          Open CPAlead
-                        </button>
-                        <button className="btn btn-ghost max-sm:w-full" onClick={() => openOfferwall("Torox")}>
-                          Open Torox
-                        </button>
-                      </div>
+                    <div className="mb-3">
+                      <h3 className="font-extrabold text-amber-100">Offerwall Tasks</h3>
+                      <p className="mt-1 text-sm text-amber-100/70">
+                        Complete offers inside ABM Hub. Points should be added after postback/confirmation.
+                      </p>
                     </div>
+
+                    {!user ? (
+                      <button className="btn w-full" onClick={() => setAuthOpen(true)}>
+                        Login to open offerwall
+                      </button>
+                    ) : activeOfferwallUrl ? (
+                      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+                        <iframe
+                          title="ABM Hub Offerwall"
+                          src={activeOfferwallUrl}
+                          className="h-[620px] w-full border-0 bg-white max-sm:h-[720px]"
+                          loading="lazy"
+                          allow="fullscreen; clipboard-write"
+                        />
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm text-amber-100">
+                        Offerwall link not added yet.
+                      </div>
+                    )}
                   </div>
 
                   <div className="rounded-2xl border border-blue-400/15 bg-blue-400/10 p-4">

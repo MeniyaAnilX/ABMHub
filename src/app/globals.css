@@ -537,3 +537,9 @@ input[type="number"].form-field::-webkit-inner-spin-button {
   border-radius: 1rem;
   padding: 1rem;
 }
+
+
+/* ABMHub v44: embedded offerwall */
+iframe[title="ABM Hub Offerwall"] {
+  display: block;
+}

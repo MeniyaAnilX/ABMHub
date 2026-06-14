@@ -35,6 +35,7 @@ type GamingSettings = {
   id: string;
   youtube_short_url: string | null;
   youtube_reward_points: number;
+  offerwall_url: string | null;
   cpalead_offerwall_url: string | null;
   torox_offerwall_url: string | null;
   updated_at: string;
@@ -152,7 +153,7 @@ export default function AdminPage() {
   const [redemptionFilter, setRedemptionFilter] = useState<RedemptionFilter>("pending");
   const [redemptions, setRedemptions] = useState<GamingRedemption[]>([]);
   const [redemptionCodes, setRedemptionCodes] = useState<Record<string, string>>({});
-  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, cpalead_offerwall_url: "", torox_offerwall_url: "", updated_at: "" });
+  const [gamingSettings, setGamingSettings] = useState<GamingSettings>({ id: "main", youtube_short_url: "", youtube_reward_points: 10, offerwall_url: "", cpalead_offerwall_url: "", torox_offerwall_url: "", updated_at: "" });
   const [gamingLedger, setGamingLedger] = useState<GamingLedger[]>([]);
   const [gamingUsers, setGamingUsers] = useState<GamingUser[]>([]);
   const [gamingSearch, setGamingSearch] = useState("");
@@ -242,6 +243,7 @@ export default function AdminPage() {
         id: "main",
         youtube_short_url: gamingSettings.youtube_short_url?.trim() || "",
         youtube_reward_points: points,
+        offerwall_url: gamingSettings.offerwall_url?.trim() || "",
         cpalead_offerwall_url: gamingSettings.cpalead_offerwall_url?.trim() || "",
         torox_offerwall_url: gamingSettings.torox_offerwall_url?.trim() || "",
         updated_at: new Date().toISOString(),
@@ -324,6 +326,28 @@ export default function AdminPage() {
     }
 
     setToast("Gaming points updated.");
+    setTimeout(() => setToast(""), 2600);
+    await Promise.all([loadGamingLedger(), searchGamingUsers()]);
+  }
+
+  async function approveUserPendingPoints(email: string | null) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+
+    if (!cleanEmail) {
+      setMessage("User email not found.");
+      return;
+    }
+
+    const { error } = await supabase.rpc("admin_approve_user_pending_points", {
+      target_email: cleanEmail,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setToast("Pending points approved.");
     setTimeout(() => setToast(""), 2600);
     await Promise.all([loadGamingLedger(), searchGamingUsers()]);
   }
@@ -848,7 +872,7 @@ export default function AdminPage() {
               </label>
 
               <label className="grid gap-2 text-sm text-slate-300">
-                Reward Points
+                YouTube Reward Points
                 <input
                   className="form-field"
                   type="number"
@@ -860,24 +884,18 @@ export default function AdminPage() {
             </div>
 
             <label className="grid gap-2 text-sm text-slate-300">
-              CPAlead Offerwall URL
+              Active Offerwall URL
               <input
                 className="form-field"
-                value={gamingSettings.cpalead_offerwall_url || ""}
-                onChange={(event) => setGamingSettings((current) => ({ ...current, cpalead_offerwall_url: event.target.value }))}
-                placeholder="Paste CPAlead offerwall link. Use {USER_ID} or {SUBID} placeholder if needed."
+                value={gamingSettings.offerwall_url || ""}
+                onChange={(event) => setGamingSettings((current) => ({ ...current, offerwall_url: event.target.value }))}
+                placeholder="Paste CPAlead or Torox offerwall URL. Use {USER_ID} or {SUBID} placeholder."
               />
             </label>
 
-            <label className="grid gap-2 text-sm text-slate-300">
-              Torox Offerwall URL
-              <input
-                className="form-field"
-                value={gamingSettings.torox_offerwall_url || ""}
-                onChange={(event) => setGamingSettings((current) => ({ ...current, torox_offerwall_url: event.target.value }))}
-                placeholder="Paste Torox offerwall link. Use {USER_ID} or {SUBID} placeholder if needed."
-              />
-            </label>
+            <div className="rounded-2xl border border-blue-400/15 bg-blue-400/10 p-3 text-xs leading-5 text-blue-100/75">
+              Use only one active offerwall here. You can replace CPAlead with Torox anytime. Example: https://www.qckclk.com/wall/Q5rwH?subid={USER_ID}
+            </div>
 
             <button type="button" className="btn w-full" onClick={saveGamingSettings}>Save Gaming Settings</button>
           </div>
@@ -950,6 +968,9 @@ export default function AdminPage() {
                   <span>Requests</span>
                   <b className="text-right text-cyan-300">{item.redemption_count}</b>
                 </div>
+                <button type="button" className="btn mt-3 w-full" disabled={Number(item.pending_points || 0) <= 0} onClick={() => approveUserPendingPoints(item.email)}>
+                  Approve Pending Points
+                </button>
               </div>
             )) : (
               <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400 lg:col-span-3">

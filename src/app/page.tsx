@@ -9,11 +9,45 @@ import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
-import { Gamepad2, Heart, LineChart, Rocket, Search, Star } from "lucide-react";
+import { CheckCircle2, Clock3, Coins, Gamepad2, Gift, Heart, LineChart, Rocket, Search, ShieldCheck, Star, Trophy } from "lucide-react";
 
 type SortMode = "newest" | "az" | "funding";
 type Section = "airdrop" | "trading" | "gaming";
 type ViewMode = "all" | "favorites";
+
+type GamingLedger = {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  points: number;
+  source: string;
+  task_key: string | null;
+  status: "approved" | "pending" | "rejected";
+  note: string | null;
+  created_at: string;
+};
+
+type GamingRedemption = {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  reward_name: string;
+  points_cost: number;
+  status: "pending" | "approved" | "rejected";
+  reward_code: string | null;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const redeemOptions = [
+  { name: "₹10 Google Play Gift Card", cost: 1000 },
+  { name: "₹20 Google Play Gift Card", cost: 2000 },
+];
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default function PublicHomePage() {
   const [section, setSection] = useState<Section>("airdrop");
@@ -28,6 +62,9 @@ export default function PublicHomePage() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [authOpen, setAuthOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [gamingLedger, setGamingLedger] = useState<GamingLedger[]>([]);
+  const [gamingRedemptions, setGamingRedemptions] = useState<GamingRedemption[]>([]);
+  const [gamingBusy, setGamingBusy] = useState("");
   const modalHistoryActiveRef = useRef(false);
 
   function showToast(message: string) {
@@ -65,13 +102,39 @@ export default function PublicHomePage() {
     }
   }
 
+  async function loadGamingData(currentUserId: string) {
+    const [ledgerResult, redemptionResult] = await Promise.all([
+      supabase
+        .from("gaming_points_ledger")
+        .select("*")
+        .eq("user_id", currentUserId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("gaming_redemptions")
+        .select("*")
+        .eq("user_id", currentUserId)
+        .order("created_at", { ascending: false }),
+    ]);
+
+    if (!ledgerResult.error) {
+      setGamingLedger((ledgerResult.data || []) as GamingLedger[]);
+    }
+
+    if (!redemptionResult.error) {
+      setGamingRedemptions((redemptionResult.data || []) as GamingRedemption[]);
+    }
+  }
+
   useEffect(() => {
     loadProjects();
 
     supabase.auth.getSession().then(({ data }) => {
       const currentUser = data.session?.user || null;
       setUser(currentUser);
-      if (currentUser) loadFavorites(currentUser.id);
+      if (currentUser) {
+        loadFavorites(currentUser.id);
+        loadGamingData(currentUser.id);
+      }
     });
 
     const authListener = supabase.auth.onAuthStateChange((_event, session) => {
@@ -80,16 +143,29 @@ export default function PublicHomePage() {
 
       if (currentUser) {
         loadFavorites(currentUser.id);
+        loadGamingData(currentUser.id);
       } else {
         setFavoriteIds(new Set());
+        setGamingLedger([]);
+        setGamingRedemptions([]);
         setViewMode("all");
       }
     });
 
     const channel = supabase
-      .channel("public-projects-live")
+      .channel("public-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, () => {
         loadProjects();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gaming_points_ledger" }, () => {
+        supabase.auth.getSession().then(({ data }) => {
+          if (data.session?.user) loadGamingData(data.session.user.id);
+        });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gaming_redemptions" }, () => {
+        supabase.auth.getSession().then(({ data }) => {
+          if (data.session?.user) loadGamingData(data.session.user.id);
+        });
       })
       .subscribe();
 
@@ -129,7 +205,6 @@ export default function PublicHomePage() {
 
     setSelectedProject(null);
   }
-
 
   async function logout() {
     await supabase.auth.signOut();
@@ -194,6 +269,74 @@ export default function PublicHomePage() {
     showToast("Added to favorites");
   }
 
+  async function claimGamingTask(source: string, points: number, note: string) {
+    if (!user) {
+      setAuthOpen(true);
+      showToast("Login to earn gaming points.");
+      return;
+    }
+
+    const taskKey = `${source}-${user.id}-${todayKey()}`;
+    setGamingBusy(source);
+
+    const { error } = await supabase.from("gaming_points_ledger").insert({
+      user_id: user.id,
+      user_email: user.email || null,
+      points,
+      source,
+      task_key: taskKey,
+      status: "approved",
+      note,
+    });
+
+    setGamingBusy("");
+
+    if (error) {
+      if (error.message.toLowerCase().includes("duplicate") || error.code === "23505") {
+        showToast("Already claimed today.");
+      } else {
+        showToast(error.message);
+      }
+      return;
+    }
+
+    showToast(`+${points} points added`);
+    await loadGamingData(user.id);
+  }
+
+  async function requestRedeem(rewardName: string, pointsCost: number, availablePoints: number) {
+    if (!user) {
+      setAuthOpen(true);
+      showToast("Login to redeem points.");
+      return;
+    }
+
+    if (availablePoints < pointsCost) {
+      showToast("Not enough approved points yet.");
+      return;
+    }
+
+    setGamingBusy(`redeem-${pointsCost}`);
+
+    const { error } = await supabase.from("gaming_redemptions").insert({
+      user_id: user.id,
+      user_email: user.email || null,
+      reward_name: rewardName,
+      points_cost: pointsCost,
+      status: "pending",
+    });
+
+    setGamingBusy("");
+
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+
+    showToast("Redeem request sent for admin approval.");
+    await loadGamingData(user.id);
+  }
+
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase();
 
@@ -224,6 +367,33 @@ export default function PublicHomePage() {
 
     return list;
   }, [projects, query, sort, viewMode, favoriteIds]);
+
+  const gamingStats = useMemo(() => {
+    const approvedPoints = gamingLedger
+      .filter((item) => item.status === "approved")
+      .reduce((sum, item) => sum + Number(item.points || 0), 0);
+
+    const pendingPoints = gamingLedger
+      .filter((item) => item.status === "pending")
+      .reduce((sum, item) => sum + Math.max(0, Number(item.points || 0)), 0);
+
+    const pendingRedeemCost = gamingRedemptions
+      .filter((item) => item.status === "pending")
+      .reduce((sum, item) => sum + Number(item.points_cost || 0), 0);
+
+    return {
+      approvedPoints,
+      pendingPoints,
+      pendingRedeemCost,
+      availablePoints: Math.max(0, approvedPoints - pendingRedeemCost),
+    };
+  }, [gamingLedger, gamingRedemptions]);
+
+  function hasClaimedToday(source: string) {
+    if (!user) return false;
+    const key = `${source}-${user.id}-${todayKey()}`;
+    return gamingLedger.some((item) => item.task_key === key);
+  }
 
   return (
     <>
@@ -272,7 +442,6 @@ export default function PublicHomePage() {
                     <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{favoriteIds.size}</span>
                   </button>
                 </div>
-
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">
@@ -333,17 +502,198 @@ export default function PublicHomePage() {
               <div className="glass rounded-2xl p-10 text-center text-slate-400">No matching projects found.</div>
             )}
           </>
+        ) : section === "gaming" ? (
+          <section className="grid gap-5">
+            <div className="glass rounded-[28px] p-6 max-sm:rounded-[20px] max-sm:p-4">
+              <div className="grid gap-5 lg:grid-cols-[1.05fr_.95fr]">
+                <div>
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-extrabold text-emerald-200">
+                    <Gamepad2 size={14} />
+                    Gaming Earn Points
+                  </div>
+                  <h1 className="mb-3 text-3xl font-extrabold tracking-tight max-sm:text-2xl">
+                    Earn ABM Points, redeem Google Play gift cards
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-relaxed text-slate-400">
+                    Complete safe gaming tasks, collect approved points, then request a Google Play gift card. Use the gift card on Play Store for Free Fire diamonds by yourself.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
+                  <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      <Coins size={14} />
+                      Approved
+                    </div>
+                    <div className="text-2xl font-black text-emerald-300">{gamingStats.approvedPoints}</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      <Clock3 size={14} />
+                      Pending
+                    </div>
+                    <div className="text-2xl font-black text-amber-300">{gamingStats.pendingPoints}</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      <Gift size={14} />
+                      Redeemable
+                    </div>
+                    <div className="text-2xl font-black text-cyan-300">{gamingStats.availablePoints}</div>
+                  </div>
+                </div>
+              </div>
+
+              {!user ? (
+                <div className="mt-5 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+                  Login or sign up to start earning points.
+                  <button className="btn ml-3 max-sm:ml-0 max-sm:mt-3" onClick={() => setAuthOpen(true)}>Login / Sign Up</button>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-[1fr_.8fr]">
+              <div className="glass rounded-[28px] p-6 max-sm:rounded-[20px] max-sm:p-4">
+                <h2 className="mb-4 flex items-center gap-2 text-xl font-extrabold">
+                  <Trophy size={20} className="text-amber-300" />
+                  Daily Tasks
+                </h2>
+
+                <div className="grid gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                    <div className="flex items-start justify-between gap-4 max-sm:flex-col">
+                      <div>
+                        <h3 className="font-extrabold">Daily Check-in</h3>
+                        <p className="mt-1 text-sm text-slate-400">Open Gaming section every day and claim small points.</p>
+                      </div>
+                      <button
+                        className="btn max-sm:w-full"
+                        disabled={!user || gamingBusy === "daily_checkin" || hasClaimedToday("daily_checkin")}
+                        onClick={() => claimGamingTask("daily_checkin", 2, "Daily gaming check-in")}
+                      >
+                        <CheckCircle2 size={16} />
+                        {hasClaimedToday("daily_checkin") ? "Claimed" : "+2 Points"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                    <div className="flex items-start justify-between gap-4 max-sm:flex-col">
+                      <div>
+                        <h3 className="font-extrabold">Daily Gaming Quiz</h3>
+                        <p className="mt-1 text-sm text-slate-400">MVP quiz reward. Later we can add real Free Fire quiz questions.</p>
+                      </div>
+                      <button
+                        className="btn max-sm:w-full"
+                        disabled={!user || gamingBusy === "daily_quiz" || hasClaimedToday("daily_quiz")}
+                        onClick={() => claimGamingTask("daily_quiz", 5, "Daily gaming quiz")}
+                      >
+                        <CheckCircle2 size={16} />
+                        {hasClaimedToday("daily_quiz") ? "Claimed" : "+5 Points"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-amber-400/15 bg-amber-400/10 p-4">
+                    <div className="flex items-start justify-between gap-4 max-sm:flex-col">
+                      <div>
+                        <h3 className="font-extrabold text-amber-100">Offerwall Tasks</h3>
+                        <p className="mt-1 text-sm text-amber-100/70">
+                          Lootably / CPAlead integration placeholder. Use postback later so points are approved only after real payout.
+                        </p>
+                      </div>
+                      <button className="btn btn-ghost max-sm:w-full" onClick={() => showToast("Offerwall integration coming in next build.")}>
+                        Coming Soon
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-blue-400/15 bg-blue-400/10 p-4">
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck size={18} className="mt-0.5 shrink-0 text-blue-300" />
+                      <p className="text-sm leading-relaxed text-blue-100/75">
+                        Profit-safe rule: offerwall points should stay pending until payout is confirmed. Only approved points can be redeemed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass rounded-[28px] p-6 max-sm:rounded-[20px] max-sm:p-4">
+                <h2 className="mb-4 flex items-center gap-2 text-xl font-extrabold">
+                  <Gift size={20} className="text-purple-300" />
+                  Redeem Store
+                </h2>
+
+                <div className="grid gap-3">
+                  {redeemOptions.map((reward) => (
+                    <div key={reward.cost} className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-extrabold">{reward.name}</h3>
+                          <p className="text-sm text-slate-400">{reward.cost} approved points</p>
+                        </div>
+                        <span className="rounded-lg border border-purple-400/20 bg-purple-400/10 px-2 py-1 text-xs font-extrabold text-purple-200">
+                          Gift Card
+                        </span>
+                      </div>
+                      <button
+                        className="btn w-full"
+                        disabled={!user || gamingBusy === `redeem-${reward.cost}` || gamingStats.availablePoints < reward.cost}
+                        onClick={() => requestRedeem(reward.name, reward.cost, gamingStats.availablePoints)}
+                      >
+                        Request Redeem
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5">
+                  <h3 className="mb-3 text-sm font-extrabold text-slate-300">My Redeem Requests</h3>
+                  {!user ? (
+                    <p className="text-sm text-slate-500">Login to see requests.</p>
+                  ) : gamingRedemptions.length ? (
+                    <div className="grid gap-2">
+                      {gamingRedemptions.slice(0, 5).map((item) => (
+                        <div key={item.id} className="rounded-xl border border-white/10 bg-black/15 p-3 text-sm">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="font-bold">{item.reward_name}</span>
+                            <span className={`rounded-lg px-2 py-1 text-xs font-extrabold ${
+                              item.status === "approved"
+                                ? "bg-emerald-400/10 text-emerald-300"
+                                : item.status === "rejected"
+                                  ? "bg-red-400/10 text-red-300"
+                                  : "bg-amber-400/10 text-amber-300"
+                            }`}>
+                              {item.status}
+                            </span>
+                          </div>
+                          {item.reward_code ? (
+                            <div className="mt-2 rounded-lg border border-emerald-400/15 bg-emerald-400/10 p-2 text-emerald-100">
+                              Code: <b>{item.reward_code}</b>
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">No redeem requests yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
         ) : (
           <section className="glass grid min-h-[360px] place-items-center rounded-[28px] p-8 text-center max-sm:min-h-[300px] max-sm:rounded-[20px] max-sm:p-5">
             <div>
               <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-purple-600">
-                {section === "trading" ? <LineChart size={30} /> : <Gamepad2 size={30} />}
+                <LineChart size={30} />
               </div>
-              <h1 className="mb-2 text-3xl font-extrabold tracking-tight">
-                {section === "trading" ? "Trading Section Coming Soon" : "Gaming Section Coming Soon"}
-              </h1>
+              <h1 className="mb-2 text-3xl font-extrabold tracking-tight">Trading Section Coming Soon</h1>
               <p className="mx-auto max-w-lg text-sm leading-relaxed text-slate-400">
-                This section is planned for ABM Hub future expansion. For now, Airdrop section is active.
+                This section is planned for ABM Hub future expansion. For now, Airdrop and Gaming sections are active.
               </p>
             </div>
           </section>

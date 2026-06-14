@@ -492,3 +492,18 @@ div {
     overflow-wrap: anywhere;
   }
 }
+
+
+/* ABMHub v39 Gaming MVP */
+button:disabled,
+.btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.gaming-stat-card {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.15);
+  border-radius: 1rem;
+  padding: 1rem;
+}

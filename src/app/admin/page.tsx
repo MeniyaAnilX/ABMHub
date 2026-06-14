@@ -14,6 +14,20 @@ const statuses: ProjectStatus[] = ["Live", "Trending", "Ended"];
 const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "BNB Chain", "Other"];
 const costs: Cost[] = ["Free", "Low Gas", "Paid"];
 
+
+type GamingRedemption = {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  reward_name: string;
+  points_cost: number;
+  status: "pending" | "approved" | "rejected";
+  reward_code: string | null;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type FormState = {
   id?: string;
   project_name: string;
@@ -94,6 +108,8 @@ export default function AdminPage() {
   const [toast, setToast] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [redemptions, setRedemptions] = useState<GamingRedemption[]>([]);
+  const [redemptionCodes, setRedemptionCodes] = useState<Record<string, string>>({});
   const tasksRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -126,14 +142,18 @@ export default function AdminPage() {
 
       setCheckingAuth(false);
       loadProjects();
+      loadRedemptions();
     }
 
     checkAuth();
 
     const channel = supabase
-      .channel("admin-projects-live")
+      .channel("admin-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, () => {
         loadProjects(false);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gaming_redemptions" }, () => {
+        loadRedemptions();
       })
       .subscribe();
 
@@ -141,6 +161,81 @@ export default function AdminPage() {
       supabase.removeChannel(channel);
     };
   }, [router]);
+
+
+  async function loadRedemptions() {
+    const { data, error } = await supabase
+      .from("gaming_redemptions")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return;
+    }
+
+    setRedemptions((data || []) as GamingRedemption[]);
+  }
+
+  async function approveRedemption(redemption: GamingRedemption) {
+    const code = (redemptionCodes[redemption.id] || "").trim();
+
+    const { error: updateError } = await supabase
+      .from("gaming_redemptions")
+      .update({
+        status: "approved",
+        reward_code: code || null,
+        admin_note: "Approved by admin",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", redemption.id);
+
+    if (updateError) {
+      setMessage(updateError.message);
+      return;
+    }
+
+    const { error: ledgerError } = await supabase
+      .from("gaming_points_ledger")
+      .upsert({
+        user_id: redemption.user_id,
+        user_email: redemption.user_email,
+        points: -Math.abs(Number(redemption.points_cost || 0)),
+        source: "redeem_spent",
+        task_key: `redeem-spent-${redemption.id}`,
+        status: "approved",
+        note: `${redemption.reward_name} approved`,
+      }, { onConflict: "task_key" });
+
+    if (ledgerError) {
+      setMessage("Redeem approved, but point deduction failed: " + ledgerError.message);
+      return;
+    }
+
+    setToast("Redeem approved.");
+    setTimeout(() => setToast(""), 2600);
+    loadRedemptions();
+  }
+
+  async function rejectRedemption(redemption: GamingRedemption) {
+    const { error } = await supabase
+      .from("gaming_redemptions")
+      .update({
+        status: "rejected",
+        admin_note: "Rejected by admin",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", redemption.id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setToast("Redeem rejected.");
+    setTimeout(() => setToast(""), 2600);
+    loadRedemptions();
+  }
+
 
   async function loadProjects(showLoading = false) {
     if (showLoading) setCheckingAuth(true);
@@ -555,6 +650,69 @@ export default function AdminPage() {
             ))}
           </div>
         </section>
+
+        <section className="glass mt-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
+          <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
+            <div>
+              <h2 className="text-lg font-extrabold tracking-tight">Gaming Redeem Requests</h2>
+              <p className="text-sm text-slate-400">Approve only after checking points and giving a real gift card code.</p>
+            </div>
+            <button type="button" className="btn btn-ghost" onClick={loadRedemptions}>Refresh</button>
+          </div>
+
+          <div className="grid gap-3">
+            {redemptions.length ? redemptions.map((redemption) => (
+              <div key={redemption.id} className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+                  <div>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="font-extrabold">{redemption.reward_name}</span>
+                      <span className={`rounded-lg px-2 py-1 text-xs font-extrabold ${
+                        redemption.status === "approved"
+                          ? "bg-emerald-400/10 text-emerald-300"
+                          : redemption.status === "rejected"
+                            ? "bg-red-400/10 text-red-300"
+                            : "bg-amber-400/10 text-amber-300"
+                      }`}>
+                        {redemption.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-400">User: {redemption.user_email || redemption.user_id}</p>
+                    <p className="text-sm text-slate-400">Cost: {redemption.points_cost} points</p>
+                    {redemption.reward_code ? (
+                      <p className="mt-2 rounded-xl border border-emerald-400/15 bg-emerald-400/10 p-2 text-sm text-emerald-100">
+                        Code: <b>{redemption.reward_code}</b>
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-2">
+                    <input
+                      className="form-field"
+                      placeholder="Gift card code"
+                      value={redemptionCodes[redemption.id] || ""}
+                      onChange={(event) => setRedemptionCodes((current) => ({ ...current, [redemption.id]: event.target.value }))}
+                      disabled={redemption.status !== "pending"}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" className="btn" disabled={redemption.status !== "pending"} onClick={() => approveRedemption(redemption)}>
+                        Approve
+                      </button>
+                      <button type="button" className="btn btn-danger" disabled={redemption.status !== "pending"} onClick={() => rejectRedemption(redemption)}>
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div className="rounded-2xl border border-white/10 bg-black/15 p-5 text-sm text-slate-400">
+                No redeem requests yet.
+              </div>
+            )}
+          </div>
+        </section>
+
       </main>
     </>
   );

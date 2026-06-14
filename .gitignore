@@ -44,6 +44,7 @@ config.txt
 *.bat
 *.sql
 ABMFIX_*.md
+README.md
 README_ABMHUB.md
 GITHUB_CLEAN_CHECKLIST.txt
 node_modules/
@@ -55,9 +56,12 @@ dist/
 .env.*.local
 .vercel/
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 *.log
 *.pem
 .DS_Store
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 config.txt

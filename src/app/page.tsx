@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { ProjectCard } from "@/components/ProjectCard";
 import { ProjectDetails } from "@/components/ProjectDetails";
+import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
 import { Gamepad2, LineChart, Rocket, Search } from "lucide-react";
@@ -19,6 +22,15 @@ export default function PublicHomePage() {
   const [sort, setSort] = useState<SortMode>("newest");
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [authOpen, setAuthOpen] = useState(false);
+  const [toast, setToast] = useState("");
+
+  function showToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(""), 2400);
+  }
 
   async function loadProjects() {
     setLoading(true);
@@ -39,8 +51,35 @@ export default function PublicHomePage() {
     setLoading(false);
   }
 
+  async function loadFavorites(currentUserId: string) {
+    const { data, error } = await supabase
+      .from("user_favorites")
+      .select("project_id")
+      .eq("user_id", currentUserId);
+
+    if (!error && data) {
+      setFavoriteIds(new Set(data.map((item) => item.project_id as string)));
+    }
+  }
+
   useEffect(() => {
     loadProjects();
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) loadFavorites(data.user.id);
+    });
+
+    const authListener = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        loadFavorites(currentUser.id);
+      } else {
+        setFavoriteIds(new Set());
+      }
+    });
 
     const channel = supabase
       .channel("public-projects-live")
@@ -50,9 +89,63 @@ export default function PublicHomePage() {
       .subscribe();
 
     return () => {
+      authListener.data.subscription.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, []);
+
+  async function logout() {
+    await supabase.auth.signOut();
+    showToast("Logged out");
+  }
+
+  async function toggleFavorite(project: Project) {
+    if (!user) {
+      setAuthOpen(true);
+      showToast("Sign up or login to save favorite projects.");
+      return;
+    }
+
+    const alreadySaved = favoriteIds.has(project.id);
+
+    if (alreadySaved) {
+      setFavoriteIds((current) => {
+        const next = new Set(current);
+        next.delete(project.id);
+        return next;
+      });
+
+      const { error } = await supabase
+        .from("user_favorites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("project_id", project.id);
+
+      if (error) {
+        showToast(error.message);
+        loadFavorites(user.id);
+        return;
+      }
+
+      showToast("Removed from favorites");
+      return;
+    }
+
+    setFavoriteIds((current) => new Set(current).add(project.id));
+
+    const { error } = await supabase.from("user_favorites").insert({
+      user_id: user.id,
+      project_id: project.id,
+    });
+
+    if (error) {
+      showToast(error.message);
+      loadFavorites(user.id);
+      return;
+    }
+
+    showToast("Added to favorites");
+  }
 
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase();
@@ -85,7 +178,14 @@ export default function PublicHomePage() {
 
   return (
     <>
-      <Header />
+      <Header
+        showAuth
+        userEmail={user?.email || null}
+        onOpenAuth={() => setAuthOpen(true)}
+        onLogout={logout}
+      />
+
+      <Toast message={toast} />
 
       <main className="app-shell">
         <section className="mb-5 flex flex-wrap gap-3">
@@ -127,13 +227,17 @@ export default function PublicHomePage() {
             ) : errorMsg ? (
               <div className="glass rounded-2xl p-10 text-center text-cyan-200">
                 Supabase read error: {errorMsg}
-                <br />
-                <span className="mt-2 block text-sm text-slate-400">Run ABMHUB_V6_ADMIN_REALTIME_RATING_FIX.sql in Supabase SQL Editor.</span>
               </div>
             ) : filteredProjects.length ? (
               <section className="grid grid-cols-[repeat(auto-fill,minmax(314px,1fr))] gap-[15px] max-sm:grid-cols-1">
                 {filteredProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} onOpen={setSelectedProject} />
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onOpen={setSelectedProject}
+                    isFavorite={favoriteIds.has(project.id)}
+                    onToggleFavorite={toggleFavorite}
+                  />
                 ))}
               </section>
             ) : (
@@ -158,6 +262,7 @@ export default function PublicHomePage() {
       </main>
 
       <ProjectDetails project={selectedProject} onClose={() => setSelectedProject(null)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => showToast("Login successful")} />
     </>
   );
 }

@@ -1,10 +1,12 @@
 import type { Project } from "@/types/project";
-import { ExternalLink, Globe, Trophy, Wallet } from "lucide-react";
+import { ExternalLink, Globe, Star, Trophy, Wallet } from "lucide-react";
 import { getQuestLabel } from "@/lib/questLinks";
 
 type ProjectCardProps = {
   project: Project;
   onOpen?: (project: Project) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (project: Project) => void;
 };
 
 const colorMap: Record<string, string> = {
@@ -31,7 +33,12 @@ function initials(name: string) {
   return name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function ProjectCard({ project, onOpen }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  onOpen,
+  isFavorite = false,
+  onToggleFavorite,
+}: ProjectCardProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const questLabel = getQuestLabel(project);
 
@@ -74,6 +81,7 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
           </a>
         </div>
 
+<<<<<<< Updated upstream
         {project.website_url ? (
           <a
             href={project.website_url}
@@ -86,6 +94,38 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
             <Globe size={16} />
           </a>
         ) : null}
+=======
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleFavorite?.(project);
+            }}
+            className={`grid h-[36px] w-[36px] place-items-center rounded-xl border ${
+              isFavorite
+                ? "border-amber-400/35 bg-amber-400/15 text-amber-300"
+                : "border-white/10 bg-white/[.045] text-slate-400 hover:border-amber-400/25 hover:text-amber-300"
+            }`}
+            title={isFavorite ? "Remove favorite" : "Add favorite"}
+          >
+            <Star size={16} className={isFavorite ? "fill-amber-300" : ""} />
+          </button>
+
+          {project.website_url ? (
+            <a
+              href={project.website_url}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              className="grid h-[36px] w-[36px] place-items-center rounded-xl border border-white/10 bg-white/[.045] text-slate-400 hover:border-cyan-400/25 hover:text-white"
+              title="Website"
+            >
+              <Globe size={16} />
+            </a>
+          ) : null}
+        </div>
+>>>>>>> Stashed changes
       </div>
 
       <p className="min-h-[39px] text-[12.5px] leading-relaxed text-slate-400">

@@ -81,20 +81,6 @@ export function ProjectCard({
           </a>
         </div>
 
-<<<<<<< Updated upstream
-        {project.website_url ? (
-          <a
-            href={project.website_url}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(event) => event.stopPropagation()}
-            className="grid h-[36px] w-[36px] shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[.045] text-slate-400 hover:border-cyan-400/25 hover:text-white"
-            title="Website"
-          >
-            <Globe size={16} />
-          </a>
-        ) : null}
-=======
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
@@ -125,7 +111,6 @@ export function ProjectCard({
             </a>
           ) : null}
         </div>
->>>>>>> Stashed changes
       </div>
 
       <p className="min-h-[39px] text-[12.5px] leading-relaxed text-slate-400">

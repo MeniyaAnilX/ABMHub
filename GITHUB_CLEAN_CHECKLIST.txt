@@ -1,0 +1,26 @@
+ABMHub GitHub Clean Final
+
+UPLOAD TO GITHUB:
+- src/
+- package.json
+- package-lock.json if present
+- next.config.ts
+- tsconfig.json
+- postcss.config.mjs
+- tailwind.config.ts
+- .gitignore
+- .env.local.example
+- README.md
+- public/ if present
+
+DO NOT UPLOAD:
+- .env.local
+- .env
+- config.txt
+- .git folder
+- SQL files
+- BAT files
+- old ABMFIX notes
+- Supabase service_role key
+- GitHub token
+- Vercel token

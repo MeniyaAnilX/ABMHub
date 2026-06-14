@@ -1,0 +1,256 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #060a13;
+  --card: rgba(15, 23, 42, 0.82);
+  --border: rgba(255,255,255,0.09);
+  --border2: rgba(255,255,255,0.18);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --faint: #475569;
+  --blue: #3b82f6;
+  --cyan: #22d3ee;
+  --purple: #8b5cf6;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--text);
+  background: linear-gradient(180deg, #060a13, #030712 78%);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 22px 24px 70px;
+}
+
+.glass {
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.form-field {
+  width: 100%;
+  outline: 0;
+  color: var(--text);
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  transition: 0.18s ease;
+}
+
+.form-field::placeholder {
+  color: var(--faint);
+}
+
+.form-field:focus {
+  border-color: rgba(34,211,238,0.42);
+  box-shadow: 0 0 0 4px rgba(34,211,238,0.07);
+}
+
+.form-field option {
+  background: #0f172a;
+}
+
+.btn {
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: 11px;
+  color: #fff;
+  background: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.btn:hover {
+  transform: none;
+  box-shadow: none;
+  background: #1d4ed8;
+}
+
+.btn-ghost {
+  background: rgba(255,255,255,0.045);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--border2);
+  box-shadow: none;
+}
+
+.btn-danger {
+  background: rgba(239,68,68,0.13);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #fca5a5;
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+
+/* ABMHub clean layout fixes */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+.app-shell {
+  width: min(100% - 48px, 1340px);
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100% - 24px, 1340px);
+  }
+}
+
+
+/* ABMHub v6 fixes */
+.search-field {
+  padding-left: 44px !important;
+}
+
+
+/* ABMHub v7 smooth performance: no mouse glow tracking */
+.smooth-card {
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.smooth-card:hover {
+  border-color: rgba(34, 211, 238, 0.28);
+  background: linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.04));
+}
+
+.section-tab {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.045);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.section-tab.active {
+  color: white;
+  border-color: rgba(34, 211, 238, 0.35);
+  background: linear-gradient(135deg, rgba(59,130,246,.72), rgba(139,92,246,.72));
+}
+
+.section-tab:not(.active):hover {
+  color: white;
+  border-color: var(--border2);
+}
+
+
+/* ABMHub v8: full no-glow mode */
+* {
+  box-shadow: none !important;
+}
+
+.no-glow,
+.no-glow * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.smooth-card {
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.smooth-card:hover {
+  transform: none !important;
+  border-color: rgba(255,255,255,0.16) !important;
+  background: rgba(15, 23, 42, 0.88) !important;
+}
+
+.section-tab.active {
+  color: white;
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(37, 99, 235, 0.65);
+}
+
+.search-field {
+  padding-left: 44px !important;
+}
+
+.modal-backdrop-flat {
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: none;
+}
+
+.flat-logo {
+  background: #7c3aed !important;
+}
+
+
+/* ABMHub v9 modal transparency fix */
+.project-modal-opaque,
+.project-modal-opaque * {
+  backdrop-filter: none !important;
+}
+
+.project-modal-opaque {
+  background: #0b1220 !important;
+}

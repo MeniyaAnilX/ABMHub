@@ -1,5 +1,5 @@
 import type { Project } from "@/types/project";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, Gift, Globe, X } from "lucide-react";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
 
 type ProjectDetailsProps = {
@@ -226,15 +226,15 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
               ) : null}
 
               {project.website_url ? (
-                <a href={project.website_url} target="_blank" rel="noreferrer" className="btn justify-start">
-                  <LinkBrandIcon url={project.website_url} label="Website" fallbackDomain="abmhub.xyz" />
+                <a href={project.website_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                  <Globe size={18} />
                   Visit Website
                 </a>
               ) : null}
 
               {project.claim_airdrop_url ? (
                 <a href={project.claim_airdrop_url} target="_blank" rel="noreferrer" className="btn justify-start">
-                  <LinkBrandIcon url={project.claim_airdrop_url} label="Claim Airdrop" fallbackDomain="abmhub.xyz" />
+                  <Gift size={18} />
                   Claim Airdrop
                 </a>
               ) : null}

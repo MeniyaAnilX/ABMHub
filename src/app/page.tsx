@@ -9,13 +9,15 @@ import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
-import { Gamepad2, LineChart, Rocket, Search } from "lucide-react";
+import { Gamepad2, Heart, LineChart, Rocket, Search, Star } from "lucide-react";
 
 type SortMode = "newest" | "az" | "funding";
 type Section = "airdrop" | "trading" | "gaming";
+type ViewMode = "all" | "favorites";
 
 export default function PublicHomePage() {
   const [section, setSection] = useState<Section>("airdrop");
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [query, setQuery] = useState("");
@@ -78,6 +80,7 @@ export default function PublicHomePage() {
         loadFavorites(currentUser.id);
       } else {
         setFavoriteIds(new Set());
+        setViewMode("all");
       }
     });
 
@@ -97,6 +100,16 @@ export default function PublicHomePage() {
   async function logout() {
     await supabase.auth.signOut();
     showToast("Logged out");
+  }
+
+  function openFavoritesView() {
+    if (!user) {
+      setAuthOpen(true);
+      showToast("Sign up or login to view your favorites.");
+      return;
+    }
+
+    setViewMode("favorites");
   }
 
   async function toggleFavorite(project: Project) {
@@ -151,6 +164,8 @@ export default function PublicHomePage() {
     const text = query.trim().toLowerCase();
 
     const list = projects.filter((project) => {
+      if (viewMode === "favorites" && !favoriteIds.has(project.id)) return false;
+
       const searchText = [
         project.project_name,
         project.x_handle,
@@ -174,7 +189,7 @@ export default function PublicHomePage() {
     });
 
     return list;
-  }, [projects, query, sort]);
+  }, [projects, query, sort, viewMode, favoriteIds]);
 
   return (
     <>
@@ -203,6 +218,35 @@ export default function PublicHomePage() {
         {section === "airdrop" ? (
           <>
             <section className="glass mb-[18px] rounded-[22px] p-3.5">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className={`section-tab !px-4 !py-2 ${viewMode === "all" ? "active" : ""}`}
+                    onClick={() => setViewMode("all")}
+                  >
+                    <Rocket size={14} className="inline-block" />
+                    All Projects
+                    <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{projects.length}</span>
+                  </button>
+
+                  <button
+                    className={`section-tab !px-4 !py-2 ${viewMode === "favorites" ? "active" : ""}`}
+                    onClick={openFavoritesView}
+                  >
+                    <Star size={14} className="inline-block" />
+                    My Favorites
+                    <span className="ml-1 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px]">{favoriteIds.size}</span>
+                  </button>
+                </div>
+
+                {user ? (
+                  <div className="rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-xs font-bold text-slate-400">
+                    Saved: <span className="text-amber-300">{favoriteIds.size}</span> / Total:{" "}
+                    <span className="text-white">{projects.length}</span>
+                  </div>
+                ) : null}
+              </div>
+
               <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={17} />
@@ -210,7 +254,11 @@ export default function PublicHomePage() {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     className="form-field search-field"
-                    placeholder="Search project, backer, chain, quest, category..."
+                    placeholder={
+                      viewMode === "favorites"
+                        ? "Search your favorite projects..."
+                        : "Search project, backer, chain, quest, category..."
+                    }
                   />
                 </div>
 
@@ -240,6 +288,19 @@ export default function PublicHomePage() {
                   />
                 ))}
               </section>
+            ) : viewMode === "favorites" ? (
+              <div className="glass rounded-2xl p-10 text-center">
+                <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-300">
+                  <Heart size={24} />
+                </div>
+                <h2 className="mb-2 text-xl font-extrabold">No favorite project found</h2>
+                <p className="mx-auto mb-5 max-w-md text-sm leading-relaxed text-slate-400">
+                  Star projects from the cards, then open My Favorites to find them quickly anytime.
+                </p>
+                <button className="btn" onClick={() => setViewMode("all")}>
+                  Browse All Projects
+                </button>
+              </div>
             ) : (
               <div className="glass rounded-2xl p-10 text-center text-slate-400">No matching projects found.</div>
             )}

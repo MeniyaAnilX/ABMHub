@@ -55,9 +55,13 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.local.example
 .vercel/
 config.txt
+*.log
+*.pem
 *.bat
 *.sql
 ABMFIX_*.md
+README_ABMHUB.md
 GITHUB_CLEAN_CHECKLIST.txt

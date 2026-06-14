@@ -16,6 +16,89 @@ function initials(name: string) {
   return name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
 }
 
+const richTags = [
+  { open: "**", close: "**", className: "font-extrabold text-white" },
+  { open: "[cyan]", close: "[/cyan]", className: "font-semibold text-cyan-300" },
+  { open: "[green]", close: "[/green]", className: "font-semibold text-emerald-300" },
+  { open: "[yellow]", close: "[/yellow]", className: "font-semibold text-amber-300" },
+  { open: "[red]", close: "[/red]", className: "font-semibold text-red-300" },
+  { open: "[blue]", close: "[/blue]", className: "font-semibold text-blue-300" },
+];
+
+function renderRichText(text: string, keyPrefix = "rich"): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let index = 0;
+  let partIndex = 0;
+
+  while (index < text.length) {
+    let nextMatch: {
+      start: number;
+      end: number;
+      contentStart: number;
+      className: string;
+      closeLength: number;
+    } | null = null;
+
+    for (const tag of richTags) {
+      const start = text.indexOf(tag.open, index);
+      if (start === -1) continue;
+
+      const contentStart = start + tag.open.length;
+      const end = text.indexOf(tag.close, contentStart);
+
+      if (end === -1) continue;
+
+      if (!nextMatch || start < nextMatch.start) {
+        nextMatch = {
+          start,
+          end,
+          contentStart,
+          className: tag.className,
+          closeLength: tag.close.length,
+        };
+      }
+    }
+
+    if (!nextMatch) {
+      parts.push(text.slice(index));
+      break;
+    }
+
+    if (nextMatch.start > index) {
+      parts.push(text.slice(index, nextMatch.start));
+    }
+
+    const innerText = text.slice(nextMatch.contentStart, nextMatch.end);
+    parts.push(
+      <span key={`${keyPrefix}-${partIndex}`} className={nextMatch.className}>
+        {renderRichText(innerText, `${keyPrefix}-${partIndex}`)}
+      </span>
+    );
+
+    index = nextMatch.end + nextMatch.closeLength;
+    partIndex += 1;
+  }
+
+  return parts;
+}
+
+function renderTaskText(tasks: string[] | null) {
+  const text = tasks && tasks.length ? tasks.join("\n") : "No tasks added yet.";
+  const lines = text.split("\n");
+
+  return lines.map((line, index) => {
+    if (!line.trim()) {
+      return <div key={`blank-${index}`} className="h-4" />;
+    }
+
+    return (
+      <p key={`line-${index}`} className="min-h-7">
+        {renderRichText(line, `line-${index}`)}
+      </p>
+    );
+  });
+}
+
 function DetailBox({
   label,
   value,
@@ -93,8 +176,8 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
 
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h3 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h3>
-              <div className="text-sm leading-7 text-slate-300 whitespace-pre-wrap">
-                {(project.tasks && project.tasks.length ? project.tasks.join("\n") : "No tasks added yet.")}
+              <div className="text-sm leading-7 text-slate-300">
+                {renderTaskText(project.tasks)}
               </div>
             </div>
           </div>

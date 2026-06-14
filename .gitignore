@@ -38,6 +38,7 @@ node_modules/
 dist/
 .env.local
 .env.*.local
+.env.local.example
 .vercel/
 config.txt
 *.log
@@ -55,15 +56,6 @@ dist/
 .env.local
 .env.*.local
 .vercel/
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-*.log
-*.pem
-.DS_Store
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 config.txt
 *.bat
 *.sql

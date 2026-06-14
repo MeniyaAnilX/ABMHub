@@ -22,7 +22,6 @@
 
 body {
   min-height: 100vh;
-  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   color: var(--text);
   background: linear-gradient(180deg, #060a13, #030712 78%);
   overflow-x: hidden;

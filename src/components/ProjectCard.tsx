@@ -1,7 +1,6 @@
 import type { Project } from "@/types/project";
 import { ExternalLink, Globe, Star, Trophy, Wallet } from "lucide-react";
 import { getQuestLabel } from "@/lib/questLinks";
-import { getProjectSection, getSectionCopy } from "@/lib/projectSections";
 
 type ProjectCardProps = {
   project: Project;
@@ -18,24 +17,15 @@ const colorMap: Record<string, string> = {
   Mainnet: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
   Both: "bg-purple-500/15 text-purple-300 border-purple-500/25",
   Waitlist: "bg-amber-500/15 text-amber-300 border-amber-500/25",
-  "Free Trial": "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
-  Evaluation: "bg-blue-500/15 text-blue-300 border-blue-500/25",
-  "Instant Funding": "bg-purple-500/15 text-purple-300 border-purple-500/25",
-  "Funded Account": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
   Galxe: "bg-amber-500/15 text-amber-300 border-amber-500/25",
   Zealy: "bg-purple-500/15 text-purple-300 border-purple-500/25",
   Guild: "bg-blue-500/15 text-blue-300 border-blue-500/25",
   Portal: "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
   None: "bg-red-500/15 text-red-300 border-red-500/25",
-  "2 Quests": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
-  "3 Quests": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
-  "4 Quests": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
 };
 
 function money(value: number | null) {
   const amount = Number(value || 0);
-  if (!amount) return "$0";
-  if (amount < 1) return `$${(amount * 1000).toFixed(0)}K`;
   return amount >= 1000 ? `$${(amount / 1000).toFixed(1)}B` : `$${amount}M`;
 }
 
@@ -51,8 +41,6 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const questLabel = getQuestLabel(project);
-  const section = getProjectSection(project);
-  const copy = getSectionCopy(section);
 
   return (
     <article
@@ -126,7 +114,7 @@ export function ProjectCard({
       </div>
 
       <p className="min-h-[39px] text-[12.5px] leading-relaxed text-slate-400">
-        {project.summary || copy.fallbackSummary}
+        {project.summary || "Airdrop opportunity with funding, backers and task tracking."}
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -140,15 +128,15 @@ export function ProjectCard({
 
       <div className="grid grid-cols-2 gap-2 max-[360px]:grid-cols-1">
         <div className="rounded-[13px] border border-white/10 bg-black/15 p-3">
-          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">{copy.fundingLabel}</div>
+          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Funding</div>
           <div className="text-sm font-bold text-emerald-300">{money(project.funding_musd)}</div>
         </div>
         <div className="rounded-[13px] border border-white/10 bg-black/15 p-3">
-          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">{copy.backedLabel}</div>
+          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Backed by</div>
           <div className="text-sm font-bold">{project.backed_by}</div>
         </div>
         <div className="col-span-2 rounded-[13px] border border-white/10 bg-black/15 p-3 max-[360px]:col-span-1">
-          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">{copy.chainLabel}</div>
+          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Chain</div>
           <div className="text-sm font-bold">{project.chain}</div>
         </div>
       </div>

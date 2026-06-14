@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { Quicksand } from "next/font/google";
 import "./globals.css";
 
+const quicksand = Quicksand({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "ABMHub — Airdrop & Trading Hub",
-  description: "Discover Web3 airdrops and prop firm funding opportunities with official links, tasks and status tracking.",
+  title: "ABMHub — Airdrop Hunter Hub",
+  description: "Discover Web3 airdrops with funding, backers, phase, chain, quest platform and official links.",
 };
 
 export default function RootLayout({
@@ -13,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={quicksand.className}>{children}</body>
     </html>
   );
 }

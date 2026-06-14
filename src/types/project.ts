@@ -1,13 +1,5 @@
 export type ProjectStatus = "Live" | "Trending" | "Ended";
-export type ProjectPhase =
-  | "Testnet"
-  | "Mainnet"
-  | "Both"
-  | "Waitlist"
-  | "Free Trial"
-  | "Evaluation"
-  | "Instant Funding"
-  | "Funded Account";
+export type ProjectPhase = "Testnet" | "Mainnet" | "Both" | "Waitlist";
 export type QuestPlatform = "Galxe" | "Zealy" | "Guild" | "Portal" | "None";
 export type Chain =
   | "Ethereum"
@@ -18,17 +10,13 @@ export type Chain =
   | "Sui"
   | "Bitcoin"
   | "BNB Chain"
-  | "Forex"
-  | "Crypto"
-  | "Futures"
-  | "Stocks"
-  | "Multi-Asset"
   | "Other";
-export type Cost = "Free" | "Low Gas" | "Paid" | "Free Trial";
+export type Cost = "Free" | "Low Gas" | "Paid";
 export type Category =
   | "DeFi"
   | "AI"
   | "Layer 2"
+  | "Gaming"
   | "SocialFi"
   | "Infra"
   | "Wallet"
@@ -36,11 +24,6 @@ export type Category =
   | "Bridge"
   | "Restaking"
   | "RWA"
-  | "Prop Firm"
-  | "Free Funding"
-  | "Trading Challenge"
-  | "Broker"
-  | "Trading Tool"
   | "Other";
 
 export type QuestLink = {

@@ -92,7 +92,7 @@ function renderTaskText(tasks: string[] | null) {
     }
 
     return (
-      <p key={`line-${index}`} className="min-h-7">
+      <p key={`line-${index}`} className="min-h-7 break-words">
         {renderRichText(line, `line-${index}`)}
       </p>
     );
@@ -127,7 +127,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4 max-sm:p-0">
       <button className="absolute inset-0 cursor-default" aria-label="Close project details" onClick={onClose} />
 
-      <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:border-0 max-sm:p-4">
+      <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto overflow-x-hidden rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:border-0 max-sm:p-4">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-4 max-sm:gap-3">
             <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-white/15 bg-purple-600 font-extrabold text-white max-sm:h-12 max-sm:w-12 max-sm:rounded-2xl">
@@ -176,7 +176,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
 
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h3 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h3>
-              <div className="text-sm leading-7 text-slate-300">
+              <div className="break-words text-sm leading-7 text-slate-300">
                 {renderTaskText(project.tasks)}
               </div>
             </div>

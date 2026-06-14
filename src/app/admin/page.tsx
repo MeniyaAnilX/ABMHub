@@ -473,7 +473,7 @@ export default function AdminPage() {
 
               <textarea
                 ref={tasksRef}
-                className="form-field min-h-[220px]"
+                className="form-field min-h-[220px] max-w-full whitespace-pre-wrap break-words"
                 value={form.tasks}
                 onChange={(e) => updateForm("tasks", e.target.value)}
               />

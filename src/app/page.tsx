@@ -204,7 +204,7 @@ export default function PublicHomePage() {
       <Toast message={toast} />
 
       <main className="app-shell">
-        <section className="mb-5 flex gap-3 overflow-x-auto pb-1 max-sm:-mx-3 max-sm:px-3">
+        <section className="mb-5 flex max-w-full gap-3 overflow-x-auto pb-1">
           <button className={`section-tab ${section === "airdrop" ? "active" : ""}`} onClick={() => setSection("airdrop")}>
             <Rocket size={15} className="inline-block" /> Airdrop
           </button>
@@ -243,7 +243,7 @@ export default function PublicHomePage() {
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">
-                <div className="relative">
+                <div className="relative min-w-0">
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={17} />
                   <input
                     value={query}

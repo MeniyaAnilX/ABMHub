@@ -73,7 +73,7 @@ export function Header({ showAuth = false, userEmail, onOpenAuth, onLogout }: He
           ) : (
             <button className="btn btn-ghost" onClick={onOpenAuth}>
               <User size={15} />
-              Sign Up
+              Login / Sign Up
             </button>
           )
         ) : null}

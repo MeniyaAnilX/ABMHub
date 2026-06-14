@@ -9,8 +9,6 @@ export type Chain =
   | "Solana"
   | "Sui"
   | "Bitcoin"
-  | "Canton Network"
-  | "Hyperliquid"
   | "Multi"
   | "Polygon"
   | "BNB Chain"

@@ -11,7 +11,7 @@ import { FileJson, LogOut, Plus, Save, Search, Trash2, Upload } from "lucide-rea
 const categories: Category[] = ["DeFi", "AI", "Layer 2", "Gaming", "SocialFi", "Infra", "Wallet", "NFT", "Bridge", "Restaking", "RWA", "Other", "L1", "L2", "ZK", "DEX", "Lending"];
 const phases: ProjectPhase[] = ["Testnet", "Mainnet", "Both", "Waitlist"];
 const statuses: ProjectStatus[] = ["Live", "Trending", "Ended"];
-const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "Canton Network", "Hyperliquid", "Multi", "Polygon", "BNB Chain", "Avalanche", "Other"];
+const chains: Chain[] = ["Ethereum", "Optimism", "Arbitrum", "Base", "Solana", "Sui", "Bitcoin", "Multi", "Polygon", "BNB Chain", "Avalanche", "Other"];
 const costs: Cost[] = ["Free", "Low Gas", "Paid"];
 
 type FormState = {
@@ -133,6 +133,35 @@ function normalizeTasks(value: unknown) {
       .filter(Boolean);
   }
   return [];
+}
+
+
+function cleanBulkJsonInput(value: string) {
+  let text = value.trim();
+
+  text = text.replace(/^```json\s*/i, "");
+  text = text.replace(/^```\s*/i, "");
+  text = text.replace(/```\s*$/i, "");
+  text = text.trim();
+
+  if (text.toLowerCase().startsWith("json")) {
+    text = text.slice(4).trim();
+  }
+
+  const firstArray = text.indexOf("[");
+  const lastArray = text.lastIndexOf("]");
+  const firstObject = text.indexOf("{");
+  const lastObject = text.lastIndexOf("}");
+
+  if (firstArray !== -1 && lastArray !== -1 && lastArray > firstArray) {
+    return text.slice(firstArray, lastArray + 1);
+  }
+
+  if (firstObject !== -1 && lastObject !== -1 && lastObject > firstObject) {
+    return text.slice(firstObject, lastObject + 1);
+  }
+
+  return text;
 }
 
 function getQuestUrls(project: Project) {
@@ -380,7 +409,8 @@ export default function AdminPage() {
     setMessage("");
 
     try {
-      const parsed = JSON.parse(bulkJson);
+      const cleanedJson = cleanBulkJsonInput(bulkJson);
+      const parsed = JSON.parse(cleanedJson);
       const items: BulkProjectInput[] = Array.isArray(parsed) ? parsed : [parsed];
 
       if (!items.length) {
@@ -431,7 +461,7 @@ export default function AdminPage() {
       setTimeout(() => setToast(""), 3000);
       await loadProjects();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Invalid JSON.");
+      setMessage(error instanceof Error ? `${error.message}. Tip: paste only JSON array/object. Code fences or the word json are now auto-cleaned, but broken commas/brackets still need fixing.` : "Invalid JSON.");
     }
 
     setBulkImporting(false);

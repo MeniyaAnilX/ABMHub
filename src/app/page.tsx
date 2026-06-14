@@ -67,9 +67,10 @@ export default function PublicHomePage() {
   useEffect(() => {
     loadProjects();
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) loadFavorites(data.user.id);
+    supabase.auth.getSession().then(({ data }) => {
+      const currentUser = data.session?.user || null;
+      setUser(currentUser);
+      if (currentUser) loadFavorites(currentUser.id);
     });
 
     const authListener = supabase.auth.onAuthStateChange((_event, session) => {

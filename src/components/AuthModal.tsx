@@ -141,16 +141,16 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[90] grid place-items-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-black/70 p-4 max-sm:items-end max-sm:p-0">
       <button className="absolute inset-0 cursor-default" aria-label="Close auth popup" onClick={onClose} />
 
       <form
         onSubmit={submit}
-        className="relative z-[91] w-full max-w-md rounded-[24px] border border-white/15 bg-[#0b1220] p-6"
+        className="relative z-[91] w-full max-w-md rounded-[24px] border border-white/15 bg-[#0b1220] p-6 max-sm:max-w-full max-sm:rounded-b-none max-sm:rounded-t-[24px] max-sm:p-5"
       >
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-extrabold tracking-tight">
+            <h2 className="text-2xl font-extrabold tracking-tight max-sm:text-xl">
               {mode === "signup" ? "Create Account" : "Login"}
             </h2>
             <p className="mt-1 text-sm text-slate-400">

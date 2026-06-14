@@ -341,3 +341,73 @@ body::before {
   backdrop-filter: none !important;
 }
 
+
+
+/* ABMHub v29: automatic responsive device polish */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    width: min(100% - 20px, 1340px) !important;
+    padding-top: 16px;
+    padding-bottom: 48px;
+  }
+
+  .section-tab {
+    flex: 0 0 auto;
+    padding: 9px 13px;
+    font-size: 12px;
+  }
+
+  .btn {
+    min-height: 42px;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .form-field {
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .badge {
+    padding: 5px 9px;
+    font-size: 10px;
+  }
+
+  .search-field {
+    padding-left: 42px !important;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  input.form-field,
+  select.form-field,
+  textarea.form-field {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell {
+    width: min(100% - 14px, 1340px) !important;
+  }
+
+  .section-tab {
+    padding: 8px 11px;
+  }
+}

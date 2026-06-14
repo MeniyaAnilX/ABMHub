@@ -34,27 +34,27 @@ export function Header({ showAuth = false, userEmail, onOpenAuth, onLogout }: He
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#060a13]/90 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-[70px] max-w-[1340px] items-center justify-between gap-4 px-6 py-3 max-sm:px-4">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flat-logo grid h-10 w-10 place-items-center rounded-[13px] bg-purple-600">
+      <div className="mx-auto flex min-h-[70px] max-w-[1340px] items-center justify-between gap-4 px-6 py-3 max-sm:min-h-[62px] max-sm:gap-2 max-sm:px-3">
+        <Link href="/" className="flex min-w-0 items-center gap-3 max-sm:gap-2">
+          <div className="flat-logo grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-purple-600 max-sm:h-9 max-sm:w-9 max-sm:rounded-xl">
             <Rocket size={21} />
           </div>
           <div>
-            <b className="block text-lg leading-none tracking-tight">ABM Hub</b>
-            <span className="block text-[11px] text-slate-400">Airdrop • Trading • Gaming</span>
+            <b className="block text-lg leading-none tracking-tight max-sm:text-base">ABM Hub</b>
+            <span className="block text-[11px] text-slate-400 max-[380px]:text-[9px]">Airdrop • Trading • Gaming</span>
           </div>
         </Link>
 
         {showAuth ? (
           userEmail ? (
             <div className="relative" ref={menuRef}>
-              <button className="btn btn-ghost" onClick={() => setMenuOpen((value) => !value)}>
+              <button className="btn btn-ghost max-sm:px-3 max-sm:text-xs" onClick={() => setMenuOpen((value) => !value)}>
                 <LogOut size={15} />
                 Logout
               </button>
 
               {menuOpen ? (
-                <div className="absolute right-0 top-[calc(100%+10px)] z-[80] w-[260px] rounded-2xl border border-white/10 bg-[#0b1020] p-3">
+                <div className="absolute right-0 top-[calc(100%+10px)] z-[80] w-[260px] rounded-2xl border border-white/10 bg-[#0b1020] p-3 max-sm:w-[230px]">
                   <div className="mb-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-bold text-slate-400">
                     <div className="mb-1 text-[10px] uppercase tracking-wider text-slate-600">Signed in as</div>
                     <div className="truncate text-slate-300">{userEmail}</div>
@@ -71,7 +71,7 @@ export function Header({ showAuth = false, userEmail, onOpenAuth, onLogout }: He
               ) : null}
             </div>
           ) : (
-            <button className="btn btn-ghost" onClick={onOpenAuth}>
+            <button className="btn btn-ghost max-sm:px-3 max-sm:text-xs" onClick={onOpenAuth}>
               <User size={15} />
               Login / Sign Up
             </button>

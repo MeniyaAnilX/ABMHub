@@ -204,7 +204,7 @@ export default function PublicHomePage() {
       <Toast message={toast} />
 
       <main className="app-shell">
-        <section className="mb-5 flex flex-wrap gap-3">
+        <section className="mb-5 flex gap-3 overflow-x-auto pb-1 max-sm:-mx-3 max-sm:px-3">
           <button className={`section-tab ${section === "airdrop" ? "active" : ""}`} onClick={() => setSection("airdrop")}>
             <Rocket size={15} className="inline-block" /> Airdrop
           </button>
@@ -218,9 +218,9 @@ export default function PublicHomePage() {
 
         {section === "airdrop" ? (
           <>
-            <section className="glass mb-[18px] rounded-[22px] p-3.5">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-2">
+            <section className="glass mb-[18px] rounded-[22px] p-3.5 max-sm:rounded-[18px] max-sm:p-3">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3 max-sm:block">
+                <div className="flex flex-wrap gap-2 max-sm:mb-3">
                   <button
                     className={`section-tab !px-4 !py-2 ${viewMode === "all" ? "active" : ""}`}
                     onClick={() => setViewMode("all")}
@@ -272,7 +272,7 @@ export default function PublicHomePage() {
                 Supabase read error: {errorMsg}
               </div>
             ) : filteredProjects.length ? (
-              <section className="grid grid-cols-[repeat(auto-fill,minmax(314px,1fr))] gap-[15px] max-sm:grid-cols-1">
+              <section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[15px] max-sm:grid-cols-1 max-sm:gap-3">
                 {filteredProjects.map((project) => (
                   <ProjectCard
                     key={project.id}
@@ -301,7 +301,7 @@ export default function PublicHomePage() {
             )}
           </>
         ) : (
-          <section className="glass grid min-h-[360px] place-items-center rounded-[28px] p-8 text-center">
+          <section className="glass grid min-h-[360px] place-items-center rounded-[28px] p-8 text-center max-sm:min-h-[300px] max-sm:rounded-[20px] max-sm:p-5">
             <div>
               <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-purple-600">
                 {section === "trading" ? <LineChart size={30} /> : <Gamepad2 size={30} />}

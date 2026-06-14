@@ -41,13 +41,13 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
   const questLabel = getQuestLabel(project);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4 max-sm:p-0">
       <button className="absolute inset-0 cursor-default" aria-label="Close project details" onClick={onClose} />
 
-      <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto rounded-[28px] border border-white/15 bg-[#0b1220] p-6">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-white/15 bg-purple-600 font-extrabold text-white">
+      <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:border-0 max-sm:p-4">
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-4 max-sm:gap-3">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-white/15 bg-purple-600 font-extrabold text-white max-sm:h-12 max-sm:w-12 max-sm:rounded-2xl">
               {project.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={project.logo_url} alt={`${project.project_name} logo`} className="h-full w-full object-cover" />
@@ -56,7 +56,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
               )}
             </div>
             <div>
-              <h2 className="text-3xl font-extrabold tracking-tight max-sm:text-2xl">{project.project_name}</h2>
+              <h2 className="break-words text-3xl font-extrabold tracking-tight max-sm:text-2xl">{project.project_name}</h2>
               <a href={xUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-blue-300 hover:underline">
                 {project.x_handle}
                 <ExternalLink size={13} />
@@ -76,9 +76,9 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
           </p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
+        <div className="grid gap-5 lg:grid-cols-[1.15fr_.85fr] max-sm:gap-4">
           <div className="grid gap-5">
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
+            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h3 className="mb-4 text-base font-extrabold tracking-tight">Project Snapshot</h3>
               <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                 <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
@@ -91,7 +91,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
+            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h3 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h3>
               <div className="text-sm leading-7 text-slate-300 whitespace-pre-line">
                 {(project.tasks && project.tasks.length ? project.tasks.join("\n") : "No tasks added yet.")}
@@ -100,7 +100,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
           </div>
 
           <div className="grid gap-5 content-start">
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
+            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h3 className="mb-4 text-base font-extrabold tracking-tight">Official Links</h3>
               <div className="grid gap-3">
                 <a href={xUrl} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
@@ -125,7 +125,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
             </div>
 
             {questLinks.length ? (
-              <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
+              <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
                 <h3 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h3>
                 <div className="grid gap-3">
                   {questLinks.map((link) => (

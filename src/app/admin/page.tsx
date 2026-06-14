@@ -324,7 +324,7 @@ export default function AdminPage() {
 
         {message && <div className="glass mb-4 rounded-2xl p-4 text-sm text-cyan-200">{message}</div>}
 
-        <form onSubmit={saveProject} className="glass mb-6 rounded-3xl p-5">
+        <form onSubmit={saveProject} className="glass mb-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 flex items-center gap-2">
             <Plus size={18} className="text-cyan-300" />
             <h2 className="text-lg font-extrabold tracking-tight">{form.id ? "Edit Project" : "Add Project"}</h2>
@@ -430,7 +430,7 @@ export default function AdminPage() {
           </div>
         </form>
 
-        <section className="glass rounded-3xl p-5">
+        <section className="glass rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 grid grid-cols-[1fr_220px] items-center gap-3 max-sm:grid-cols-1">
             <h2 className="text-lg font-extrabold tracking-tight">Manage Projects</h2>
             <div className="relative">
@@ -448,8 +448,8 @@ export default function AdminPage() {
                     <p className="text-sm text-slate-400">{project.x_handle} • {project.phase} • {project.status}</p>
                     <p className="mt-1 text-sm text-slate-500">{project.backed_by}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button className="btn btn-ghost" onClick={() => editProject(project)}>Edit</button>
+                  <div className="flex gap-2 max-sm:w-full">
+                    <button className="btn btn-ghost max-sm:flex-1" onClick={() => editProject(project)}>Edit</button>
                     <button className="btn btn-danger" onClick={() => deleteProject(project.id)}>
                       <Trash2 size={16} />
                     </button>

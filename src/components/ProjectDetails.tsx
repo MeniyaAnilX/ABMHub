@@ -93,14 +93,9 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
 
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
               <h3 className="mb-4 text-base font-extrabold tracking-tight">Tasks</h3>
-              <ul className="grid gap-2">
-                {(project.tasks || []).map((task) => (
-                  <li key={task} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-[#0b1020] p-3 text-sm leading-relaxed text-slate-400">
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
-                    {task}
-                  </li>
-                ))}
-              </ul>
+              <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4 text-sm leading-7 text-slate-300 whitespace-pre-line">
+                {(project.tasks && project.tasks.length ? project.tasks.join("\n") : "No tasks added yet.")}
+              </div>
             </div>
           </div>
 

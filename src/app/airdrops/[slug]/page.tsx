@@ -75,13 +75,118 @@ function statusClass(status: string) {
   return "text-white";
 }
 
-function cleanTask(task: string) {
-  return task
-    .replace(/\*\*/g, "")
-    .replace(/\[(cyan|green|yellow|red|blue)\]/g, "")
-    .replace(/\[\/(cyan|green|yellow|red|blue)\]/g, "")
-    .replace(/^\s*\d+[.)-]\s*/g, "")
-    .trim();
+const richTags = [
+  { open: "**", close: "**", className: "font-extrabold text-white" },
+  { open: "[cyan]", close: "[/cyan]", className: "font-semibold text-cyan-300" },
+  { open: "[green]", close: "[/green]", className: "font-semibold text-emerald-300" },
+  { open: "[yellow]", close: "[/yellow]", className: "font-semibold text-amber-300" },
+  { open: "[red]", close: "[/red]", className: "font-semibold text-red-300" },
+  { open: "[blue]", close: "[/blue]", className: "font-semibold text-blue-300" },
+];
+
+function renderRichText(text: string, keyPrefix = "rich"): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let index = 0;
+  let partIndex = 0;
+
+  while (index < text.length) {
+    let nextMatch: {
+      start: number;
+      end: number;
+      contentStart: number;
+      className: string;
+      closeLength: number;
+    } | null = null;
+
+    for (const tag of richTags) {
+      const start = text.indexOf(tag.open, index);
+      if (start === -1) continue;
+
+      const contentStart = start + tag.open.length;
+      const end = text.indexOf(tag.close, contentStart);
+
+      if (end === -1) continue;
+
+      if (!nextMatch || start < nextMatch.start) {
+        nextMatch = {
+          start,
+          end,
+          contentStart,
+          className: tag.className,
+          closeLength: tag.close.length,
+        };
+      }
+    }
+
+    if (!nextMatch) {
+      parts.push(text.slice(index));
+      break;
+    }
+
+    if (nextMatch.start > index) {
+      parts.push(text.slice(index, nextMatch.start));
+    }
+
+    const innerText = text.slice(nextMatch.contentStart, nextMatch.end);
+    parts.push(
+      <span key={`${keyPrefix}-${partIndex}`} className={nextMatch.className}>
+        {renderRichText(innerText, `${keyPrefix}-${partIndex}`)}
+      </span>
+    );
+
+    index = nextMatch.end + nextMatch.closeLength;
+    partIndex += 1;
+  }
+
+  return parts;
+}
+
+function normalizeTaskLine(task: string) {
+  return task.replace(/^\s*\d+[.)-]\s*/g, "").trim();
+}
+
+function renderTaskItems(tasks: string[]) {
+  let number = 0;
+
+  return tasks.map((task, index) => {
+    const normalized = normalizeTaskLine(task);
+    if (!normalized) return null;
+
+    const plain = normalized
+      .replace(/\*\*/g, "")
+      .replace(/\[(cyan|green|yellow|red|blue)\]/g, "")
+      .replace(/\[\/(cyan|green|yellow|red|blue)\]/g, "")
+      .trim();
+
+    const isBullet = /^[•\-]\s+/.test(plain);
+    const isHeading = normalized.includes("**") || (plain.endsWith(":") && plain.length <= 90);
+
+    if (isHeading) {
+      return (
+        <div key={`task-heading-${index}`} className="pt-2 text-sm font-black text-white">
+          {renderRichText(normalized.replace(/^[-•]\s+/, ""), `task-heading-${index}`)}
+        </div>
+      );
+    }
+
+    if (isBullet) {
+      return (
+        <div key={`task-bullet-${index}`} className="flex gap-2 text-sm leading-7 text-slate-300">
+          <span className="mt-[1px] text-slate-500">•</span>
+          <span>{renderRichText(normalized.replace(/^[•\-]\s+/, ""), `task-bullet-${index}`)}</span>
+        </div>
+      );
+    }
+
+    number += 1;
+
+    return (
+      <div key={`task-${index}`} className="flex gap-2 text-sm leading-7 text-slate-300">
+        <span className="min-w-6 shrink-0 text-slate-400">{number}.</span>
+        <span>{renderRichText(normalized, `task-${index}`)}</span>
+      </div>
+    );
+  });
 }
 
 function initials(name: string) {
@@ -314,11 +419,9 @@ export default async function AirdropProjectPage({ params }: PageProps) {
           <section className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
             <h2 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h2>
             {tasks.length ? (
-              <ol className="grid list-decimal gap-3 pl-5 text-sm leading-7 text-slate-300">
-                {tasks.map((task, index) => (
-                  <li key={`${task}-${index}`}>{cleanTask(task)}</li>
-                ))}
-              </ol>
+              <div className="grid gap-3">
+                {renderTaskItems(tasks)}
+              </div>
             ) : (
               <p className="text-sm text-slate-400">No tasks have been added yet. Check official links for the latest project instructions.</p>
             )}

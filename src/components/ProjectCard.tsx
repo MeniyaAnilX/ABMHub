@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Project } from "@/types/project";
 import { ExternalLink, Star, Wallet } from "lucide-react";
 import { projectSlug } from "@/lib/seo";
@@ -35,17 +38,18 @@ export function ProjectCard({
   isFavorite = false,
   onToggleFavorite,
 }: ProjectCardProps) {
+  const router = useRouter();
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const detailsUrl = `/airdrops/${projectSlug(project)}`;
   return (
     <article
-      onClick={() => {
-        window.location.href = detailsUrl;
-      }}
+      onClick={() => router.push(detailsUrl)}
+      onMouseEnter={() => router.prefetch(detailsUrl)}
+      onFocus={() => router.prefetch(detailsUrl)}
       role="link"
       tabIndex={0}
       onKeyDown={(event) => {
-        if (event.key === "Enter") window.location.href = detailsUrl;
+        if (event.key === "Enter") router.push(detailsUrl);
       }}
       className="glass smooth-card flex min-h-[318px] cursor-pointer flex-col gap-3 rounded-[20px] p-[18px] max-sm:min-h-0 max-sm:rounded-[18px] max-sm:p-4"
     >
@@ -78,23 +82,25 @@ export function ProjectCard({
           </a>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 max-[380px]:gap-1">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onToggleFavorite?.(project);
-            }}
-            className={`grid h-[36px] w-[36px] place-items-center rounded-xl border max-[380px]:h-9 max-[380px]:w-9 ${
-              isFavorite
-                ? "border-amber-400/35 bg-amber-400/15 text-amber-300"
-                : "border-white/10 bg-white/[.045] text-slate-400 hover:border-amber-400/25 hover:text-amber-300"
-            }`}
-            title={isFavorite ? "Remove favorite" : "Add favorite"}
-          >
-            <Star size={16} className={isFavorite ? "fill-amber-300" : ""} />
-          </button>
-        </div>
+        {onToggleFavorite ? (
+          <div className="flex shrink-0 items-center gap-2 max-[380px]:gap-1">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleFavorite(project);
+              }}
+              className={`grid h-[36px] w-[36px] place-items-center rounded-xl border max-[380px]:h-9 max-[380px]:w-9 ${
+                isFavorite
+                  ? "border-amber-400/35 bg-amber-400/15 text-amber-300"
+                  : "border-white/10 bg-white/[.045] text-slate-400 hover:border-amber-400/25 hover:text-amber-300"
+              }`}
+              title={isFavorite ? "Remove favorite" : "Add favorite"}
+            >
+              <Star size={16} className={isFavorite ? "fill-amber-300" : ""} />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <p className="min-h-[39px] text-[12.5px] leading-relaxed text-slate-400">
@@ -129,7 +135,7 @@ export function ProjectCard({
           </span>
         </div>
 
-        <Link href={detailsUrl} className="btn w-full justify-center" onClick={(event) => event.stopPropagation()}>
+        <Link href={detailsUrl} prefetch className="btn w-full justify-center" onClick={(event) => event.stopPropagation()}>
           Read Project Details
         </Link>
       </div>

@@ -589,3 +589,9 @@ body[style*="position: fixed"] {
 .project-seo-page {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
 }
+
+
+/* ABMHub v61: consistent SEO listing cards and task headings */
+.project-seo-page .task-heading {
+  font-weight: 900;
+}

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { ProjectCard } from "@/components/ProjectCard";
 import { getSeoProjects } from "@/lib/projectsServer";
-import { money, projectDescription, projectSlug } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,39 +34,17 @@ export default async function AirdropsPage() {
           </p>
         </section>
 
-        <section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 max-sm:grid-cols-1">
-          {projects.map((project) => (
-            <article key={project.id} className="glass rounded-[20px] p-5">
-              <Link href={`/airdrops/${projectSlug(project)}`} className="text-xl font-black hover:text-blue-300">
-                {project.project_name}
-              </Link>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{projectDescription(project)}</p>
-
-              <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-                  <dt className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Funding</dt>
-                  <dd className="mt-1 font-extrabold text-emerald-300">{money(project.funding_musd)}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-                  <dt className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Status</dt>
-                  <dd className="mt-1 font-extrabold">{project.status}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-                  <dt className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Chain</dt>
-                  <dd className="mt-1 font-extrabold">{project.chain}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-                  <dt className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Cost</dt>
-                  <dd className="mt-1 font-extrabold">{project.cost}</dd>
-                </div>
-              </dl>
-
-              <Link href={`/airdrops/${projectSlug(project)}`} className="btn mt-4 w-full">
-                Read Project Details
-              </Link>
-            </article>
-          ))}
-        </section>
+        {projects.length ? (
+          <section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[15px] max-sm:grid-cols-1 max-sm:gap-3">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </section>
+        ) : (
+          <section className="glass rounded-[20px] p-8 text-center text-slate-400">
+            No airdrop projects found yet.
+          </section>
+        )}
       </main>
       <Footer />
     </>

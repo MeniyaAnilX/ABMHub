@@ -1,6 +1,5 @@
 import type { Project } from "@/types/project";
-import { ExternalLink, Star, Trophy, Wallet } from "lucide-react";
-import { getQuestLabel } from "@/lib/questLinks";
+import { ExternalLink, Star, Wallet } from "lucide-react";
 
 type ProjectCardProps = {
   project: Project;
@@ -17,11 +16,6 @@ const colorMap: Record<string, string> = {
   Mainnet: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
   Both: "bg-purple-500/15 text-purple-300 border-purple-500/25",
   Waitlist: "bg-amber-500/15 text-amber-300 border-amber-500/25",
-  Galxe: "bg-amber-500/15 text-amber-300 border-amber-500/25",
-  Zealy: "bg-purple-500/15 text-purple-300 border-purple-500/25",
-  Guild: "bg-blue-500/15 text-blue-300 border-blue-500/25",
-  Portal: "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
-  None: "bg-red-500/15 text-red-300 border-red-500/25",
 };
 
 function money(value: number | null) {
@@ -40,8 +34,6 @@ export function ProjectCard({
   onToggleFavorite,
 }: ProjectCardProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
-  const questLabel = getQuestLabel(project);
-
   return (
     <article
       onClick={() => onOpen?.(project)}
@@ -107,10 +99,6 @@ export function ProjectCard({
       <div className="flex flex-wrap gap-2">
         <span className={`badge ${colorMap[project.phase] || colorMap.Testnet}`}>{project.phase}</span>
         <span className={`badge ${colorMap[project.status] || colorMap.Live}`}>{project.status}</span>
-        <span className={`badge ${colorMap[questLabel] || "bg-cyan-500/15 text-cyan-300 border-cyan-500/25"}`}>
-          <Trophy size={13} />
-          {questLabel}
-        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 max-[360px]:grid-cols-1">

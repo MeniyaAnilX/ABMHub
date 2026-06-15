@@ -12,6 +12,7 @@ import type { Project } from "@/types/project";
 import { Heart, LineChart, Rocket, Search, Star } from "lucide-react";
 
 type SortMode = "newest" | "az" | "funding";
+type CostFilter = "all" | "free" | "paid";
 type Section = "airdrop" | "trading" | "favorites";
 
 export default function PublicHomePage() {
@@ -20,6 +21,7 @@ export default function PublicHomePage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("newest");
+  const [costFilter, setCostFilter] = useState<CostFilter>("all");
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [user, setUser] = useState<User | null>(null);
@@ -207,6 +209,8 @@ export default function PublicHomePage() {
 
     const list = projects.filter((project) => {
       if (section === "favorites" && !favoriteIds.has(project.id)) return false;
+      if (costFilter === "free" && project.cost !== "Free") return false;
+      if (costFilter === "paid" && project.cost !== "Paid" && project.cost !== "Low Gas") return false;
 
       const searchText = [
         project.project_name,
@@ -231,7 +235,7 @@ export default function PublicHomePage() {
     });
 
     return list;
-  }, [projects, query, sort, section, favoriteIds]);
+  }, [projects, query, sort, section, favoriteIds, costFilter]);
 
   return (
     <>
@@ -261,7 +265,7 @@ export default function PublicHomePage() {
         {section === "airdrop" || section === "favorites" ? (
           <>
             <section className="glass mb-[18px] rounded-[22px] p-3.5 max-sm:rounded-[18px] max-sm:p-3">
-              <div className="grid grid-cols-[minmax(0,1fr)_190px] gap-2.5 max-sm:grid-cols-1">
+              <div className="grid grid-cols-[minmax(0,1fr)_260px_190px] gap-2.5 max-lg:grid-cols-[minmax(0,1fr)_220px] max-sm:grid-cols-1">
                 <div className="relative min-w-0">
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={17} />
                   <input
@@ -276,7 +280,13 @@ export default function PublicHomePage() {
                   />
                 </div>
 
-                <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="form-field">
+                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/10 p-1">
+                  <button type="button" className={`cost-filter-tab ${costFilter === "all" ? "active" : ""}`} onClick={() => setCostFilter("all")}>All</button>
+                  <button type="button" className={`cost-filter-tab ${costFilter === "free" ? "active" : ""}`} onClick={() => setCostFilter("free")}>Free</button>
+                  <button type="button" className={`cost-filter-tab ${costFilter === "paid" ? "active" : ""}`} onClick={() => setCostFilter("paid")}>Paid</button>
+                </div>
+
+                <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="form-field max-lg:col-span-2 max-sm:col-span-1">
                   <option value="newest">New First</option>
                   <option value="az">A-Z</option>
                   <option value="funding">Funding</option>

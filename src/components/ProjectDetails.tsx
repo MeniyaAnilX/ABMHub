@@ -234,13 +234,13 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
 
         <div className="mb-5 grid gap-5 lg:grid-cols-[1.15fr_.85fr] max-sm:gap-4">
           <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
-            <h3 className="mb-4 text-base font-extrabold tracking-tight">Project Snapshot</h3>
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">Project Details</h3>
             <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
               <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
               <DetailBox label="Backed by" value={project.backed_by} />
               <DetailBox label="Phase" value={project.phase} />
               <DetailBox label="Status" value={<span className={statusClass(project.status)}>{project.status}</span>} />
-              <DetailBox label="Quest" value={questLabel} />
+              <DetailBox label="Quest Type" value={questLabel} />
               <DetailBox label="Chain" value={project.chain} />
               <DetailBox label="Cost" value={project.cost} />
             </div>

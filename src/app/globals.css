@@ -515,3 +515,27 @@ div {
   touch-action: pan-y;
   scrollbar-gutter: stable;
 }
+
+
+/* ABMHub v53: cost filter + solid notifications */
+.cost-filter-tab {
+  border-radius: 14px;
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.cost-filter-tab.active {
+  color: #ffffff;
+  border-color: rgba(34, 211, 238, 0.32);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.72), rgba(139, 92, 246, 0.72));
+}
+
+.cost-filter-tab:not(.active):hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}

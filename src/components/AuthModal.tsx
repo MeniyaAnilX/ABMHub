@@ -15,6 +15,19 @@ type AuthModalProps = {
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.abmhub.xyz").replace(/\/$/, "");
 
+
+async function isEmailRegistered(email: string) {
+  const { data, error } = await supabase.rpc("is_email_registered", {
+    email_input: email,
+  });
+
+  if (error) {
+    return null;
+  }
+
+  return Boolean(data);
+}
+
 function parseAuthError(message: string, mode: AuthMode) {
   const lower = message.toLowerCase();
 
@@ -35,7 +48,7 @@ function parseAuthError(message: string, mode: AuthMode) {
   if (lower.includes("invalid login credentials")) {
     return {
       type: "invalid" as MessageType,
-      text: mode === "login" ? "Email or password incorrect." : "Signup failed. Please check your details.",
+      text: mode === "login" ? "Password incorrect. Please check your password." : "Signup failed. Please check your details.",
     };
   }
 
@@ -108,6 +121,18 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
     const cleanEmail = email.trim().toLowerCase();
 
     if (mode === "login") {
+      const registered = await isEmailRegistered(cleanEmail);
+
+      if (registered === false) {
+        setBusy(false);
+        setMode("signup");
+        setMessage({
+          type: "info",
+          text: "Email not registered. Please create an account first.",
+        });
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,

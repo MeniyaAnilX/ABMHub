@@ -20,6 +20,11 @@
   box-sizing: border-box;
 }
 
+html {
+  min-height: 100%;
+  background: #060a13;
+}
+
 body {
   min-height: 100vh;
   color: var(--text);
@@ -541,14 +546,18 @@ div {
 }
 
 
-/* ABMHub v54: remove sort, lock auth popup background scroll */
+
+
+/* ABMHub v56: auth popup must keep background dark, never white/gray */
 .auth-modal-backdrop {
+  background: rgba(2, 6, 23, 0.95) !important;
   overflow: hidden !important;
   overscroll-behavior: contain !important;
   touch-action: none;
 }
 
 .auth-modal-panel {
+  background: #0b1220 !important;
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -556,8 +565,6 @@ div {
   touch-action: pan-y;
 }
 
-@media (max-width: 640px) {
-  .auth-modal-panel {
-    max-height: 100dvh;
-  }
+body[style*="position: fixed"] {
+  background: #060a13 !important;
 }

@@ -164,7 +164,7 @@ export function AuthModal({ open, onClose, onSuccess }: AuthModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-black/70 p-4 max-sm:items-end max-sm:p-0">
+    <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-[#020617]/95 p-4 max-sm:items-end max-sm:p-0">
       <button className="absolute inset-0 cursor-default" aria-label="Close auth popup" onClick={onClose} />
 
       <form

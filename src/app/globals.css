@@ -500,3 +500,18 @@ div {
   border-color: rgba(51, 65, 85, 0.85) !important;
   box-shadow: none !important;
 }
+
+
+/* ABMHub v52: lock homepage scroll when project popup is open */
+.project-details-backdrop {
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+  touch-action: none;
+}
+
+.project-modal-scroll {
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-gutter: stable;
+}

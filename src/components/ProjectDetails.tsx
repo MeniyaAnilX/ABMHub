@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import type { Project } from "@/types/project";
 import { ExternalLink, Gift, Globe, X } from "lucide-react";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
@@ -164,6 +167,29 @@ function DetailBox({
 }
 
 export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
+  useEffect(() => {
+    if (!project) return;
+
+    const scrollY = window.scrollY;
+    const previousOverflow = document.body.style.overflow;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousWidth = document.body.style.width;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.width = previousWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [project]);
+
   if (!project) return null;
 
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
@@ -171,10 +197,10 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
   const questLabel = getQuestLabel(project);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4 max-sm:p-0">
+    <div className="project-details-backdrop fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4 max-sm:p-0">
       <button className="absolute inset-0 cursor-default" aria-label="Close project details" onClick={onClose} />
 
-      <section className="project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto overflow-x-hidden rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:border-0 max-sm:p-4">
+      <section className="project-modal-scroll project-modal-opaque no-glow relative z-[60] max-h-[92vh] w-full max-w-[1040px] overflow-y-auto overflow-x-hidden rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:border-0 max-sm:p-4">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-4 max-sm:gap-3">
             <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-slate-700/80 bg-black/45 font-extrabold text-white shadow-none project-logo-frame max-sm:h-12 max-sm:w-12 max-sm:rounded-2xl">

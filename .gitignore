@@ -64,5 +64,3 @@ config.txt
 *.pem
 *.sql
 .DS_Store
-_abmhub_push_backup_*/
-_abmhub_safe_backup_*/

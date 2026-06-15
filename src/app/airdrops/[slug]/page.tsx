@@ -7,7 +7,8 @@ import { getProjectBySlug, getSeoProjects } from "@/lib/projectsServer";
 import { absoluteUrl, money, projectDescription, projectKeywords, projectSlug, projectTasksText, projectTitle, seoTitleText } from "@/lib/seo";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -79,6 +80,7 @@ function cleanTask(task: string) {
     .replace(/\*\*/g, "")
     .replace(/\[(cyan|green|yellow|red|blue)\]/g, "")
     .replace(/\[\/(cyan|green|yellow|red|blue)\]/g, "")
+    .replace(/^\s*\d+[.)-]\s*/g, "")
     .trim();
 }
 

@@ -217,6 +217,7 @@ export default function AdminPage() {
     setForm({
       id: project.id,
       project_name: project.project_name,
+      project_title: project.project_title || `${project.project_name} Airdrop Details Funding`,
       x_handle: project.x_handle,
       funding_musd: String(project.funding_musd || ""),
       backed_by: project.backed_by,

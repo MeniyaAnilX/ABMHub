@@ -5,7 +5,8 @@ import { Header } from "@/components/Header";
 import { getSeoProjects } from "@/lib/projectsServer";
 import { money, projectDescription, projectSlug } from "@/lib/seo";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Airdrop Projects, Funding, Backers & Tasks",

@@ -39,6 +39,7 @@ export function stripRichText(value: string) {
     .replace(/\*\*/g, "")
     .replace(/\[(cyan|green|yellow|red|blue)\]/g, "")
     .replace(/\[\/(cyan|green|yellow|red|blue)\]/g, "")
+    .replace(/^\s*\d+[.)-]\s*/gm, "")
     .trim();
 }
 

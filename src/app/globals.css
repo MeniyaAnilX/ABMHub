@@ -568,3 +568,18 @@ div {
 body[style*="position: fixed"] {
   background: #060a13 !important;
 }
+
+
+/* ABMHub v57: SEO/AdSense content pages */
+.seo-content h2 {
+  margin-top: 22px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.seo-content p {
+  margin-bottom: 14px;
+  color: rgb(203 213 225);
+}

@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { ProjectCard } from "@/components/ProjectCard";
 import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
+import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
 import { Heart, LineChart, Rocket, Search, Star } from "lucide-react";
@@ -256,6 +257,13 @@ export default function PublicHomePage() {
 
         {section === "airdrop" || section === "favorites" ? (
           <>
+            <section className="sr-only">
+              <h1>ABM Hub Web3 Airdrop Directory</h1>
+              <p>
+                ABM Hub lists Web3 airdrop projects with funding, backers, chain, status, cost, quest type, tasks and official links.
+                Each project also has a dedicated SEO page for users searching project funding, airdrop tasks and claim information.
+              </p>
+            </section>
             <section className="glass mb-[18px] rounded-[22px] p-3.5 max-sm:rounded-[18px] max-sm:p-3">
               <div className="grid grid-cols-[minmax(0,1fr)_260px] gap-2.5 max-sm:grid-cols-1">
                 <div className="relative min-w-0">
@@ -329,6 +337,8 @@ export default function PublicHomePage() {
           </section>
         )}
       </main>
+
+      <Footer />
 
       <ProjectDetails project={selectedProject} onClose={closeProjectDetails} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => showToast("Login successful")} />

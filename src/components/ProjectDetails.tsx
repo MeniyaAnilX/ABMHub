@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type { Project } from "@/types/project";
 import { ExternalLink, Gift, Globe, X } from "lucide-react";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
+import { projectSlug } from "@/lib/seo";
 
 type ProjectDetailsProps = {
   project: Project | null;
@@ -195,6 +196,7 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const questLinks = getQuestLinks(project);
   const questLabel = getQuestLabel(project);
+  const fullPageUrl = `/airdrops/${projectSlug(project)}`;
 
   return (
     <div className="project-details-backdrop fixed inset-0 z-50 grid place-items-center bg-[#020617] p-4 max-sm:p-0">
@@ -274,6 +276,11 @@ export function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
                   Claim Airdrop
                 </a>
               ) : null}
+
+              <a href={fullPageUrl} className="btn btn-ghost justify-start">
+                <Globe size={18} />
+                View Full SEO Page
+              </a>
             </div>
           </div>
         </div>

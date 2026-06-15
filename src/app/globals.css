@@ -539,3 +539,25 @@ div {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.05);
 }
+
+
+/* ABMHub v54: remove sort, lock auth popup background scroll */
+.auth-modal-backdrop {
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+  touch-action: none;
+}
+
+.auth-modal-panel {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+@media (max-width: 640px) {
+  .auth-modal-panel {
+    max-height: 100dvh;
+  }
+}

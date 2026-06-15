@@ -11,7 +11,6 @@ import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
 import { Heart, LineChart, Rocket, Search, Star } from "lucide-react";
 
-type SortMode = "newest" | "az" | "funding";
 type CostFilter = "all" | "free" | "paid";
 type Section = "airdrop" | "trading" | "favorites";
 
@@ -20,7 +19,6 @@ export default function PublicHomePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortMode>("newest");
   const [costFilter, setCostFilter] = useState<CostFilter>("all");
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -235,7 +233,7 @@ export default function PublicHomePage() {
     });
 
     return list;
-  }, [projects, query, sort, section, favoriteIds, costFilter]);
+  }, [projects, query, section, favoriteIds, costFilter]);
 
   return (
     <>
@@ -265,7 +263,7 @@ export default function PublicHomePage() {
         {section === "airdrop" || section === "favorites" ? (
           <>
             <section className="glass mb-[18px] rounded-[22px] p-3.5 max-sm:rounded-[18px] max-sm:p-3">
-              <div className="grid grid-cols-[minmax(0,1fr)_260px_190px] gap-2.5 max-lg:grid-cols-[minmax(0,1fr)_220px] max-sm:grid-cols-1">
+              <div className="grid grid-cols-[minmax(0,1fr)_260px] gap-2.5 max-sm:grid-cols-1">
                 <div className="relative min-w-0">
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={17} />
                   <input
@@ -285,12 +283,6 @@ export default function PublicHomePage() {
                   <button type="button" className={`cost-filter-tab ${costFilter === "free" ? "active" : ""}`} onClick={() => setCostFilter("free")}>Free</button>
                   <button type="button" className={`cost-filter-tab ${costFilter === "paid" ? "active" : ""}`} onClick={() => setCostFilter("paid")}>Paid</button>
                 </div>
-
-                <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="form-field max-lg:col-span-2 max-sm:col-span-1">
-                  <option value="newest">New First</option>
-                  <option value="az">A-Z</option>
-                  <option value="funding">Funding</option>
-                </select>
               </div>
             </section>
 

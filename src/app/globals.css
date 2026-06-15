@@ -583,3 +583,9 @@ body[style*="position: fixed"] {
   margin-bottom: 14px;
   color: rgb(203 213 225);
 }
+
+
+/* ABMHub v58: project SEO pages use same visual language as popup */
+.project-seo-page {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+}

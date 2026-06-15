@@ -1,5 +1,7 @@
+import Link from "next/link";
 import type { Project } from "@/types/project";
 import { ExternalLink, Star, Wallet } from "lucide-react";
+import { projectSlug } from "@/lib/seo";
 
 type ProjectCardProps = {
   project: Project;
@@ -34,16 +36,9 @@ export function ProjectCard({
   onToggleFavorite,
 }: ProjectCardProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
+  const detailsUrl = `/airdrops/${projectSlug(project)}`;
   return (
-    <article
-      onClick={() => onOpen?.(project)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") onOpen?.(project);
-      }}
-      className="glass smooth-card flex min-h-[318px] cursor-pointer flex-col gap-3 rounded-[20px] p-[18px] max-sm:min-h-0 max-sm:rounded-[18px] max-sm:p-4"
-    >
+    <article className="glass smooth-card flex min-h-[318px] flex-col gap-3 rounded-[20px] p-[18px] max-sm:min-h-0 max-sm:rounded-[18px] max-sm:p-4">
       <div className="flex items-start gap-3 max-[380px]:gap-2">
         <div className="grid h-[50px] w-[50px] shrink-0 place-items-center overflow-hidden rounded-[15px] border border-slate-700/80 bg-black/45 font-extrabold text-white shadow-none project-logo-frame max-sm:h-12 max-sm:w-12">
           {project.logo_url ? (
@@ -116,11 +111,17 @@ export function ProjectCard({
         </div>
       </div>
 
-      <div className="mt-auto flex flex-wrap gap-2 border-t border-white/10 pt-3">
-        <span className="badge border-cyan-500/25 bg-cyan-500/15 text-cyan-300">
-          <Wallet size={13} />
-          {project.cost}
-        </span>
+      <div className="mt-auto border-t border-white/10 pt-3">
+        <div className="mb-3 flex flex-wrap gap-2">
+          <span className="badge border-cyan-500/25 bg-cyan-500/15 text-cyan-300">
+            <Wallet size={13} />
+            {project.cost}
+          </span>
+        </div>
+
+        <Link href={detailsUrl} className="btn w-full justify-center">
+          Read Project Details
+        </Link>
       </div>
     </article>
   );

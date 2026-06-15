@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ExternalLink, Gift, Globe } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { getProjectBySlug, getSeoProjects } from "@/lib/projectsServer";
@@ -81,6 +82,60 @@ function cleanTask(task: string) {
     .trim();
 }
 
+function initials(name: string) {
+  return name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function faviconUrl(domain: string) {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+}
+
+function domainFromUrl(url: string, fallbackDomain: string) {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return fallbackDomain;
+  }
+}
+
+function getQuestIconUrl(platform: string, url: string) {
+  if (platform === "Galxe") return faviconUrl("galxe.com");
+  if (platform === "Zealy") return faviconUrl("zealy.io");
+  if (platform === "Guild") return faviconUrl("guild.xyz");
+
+  return faviconUrl(domainFromUrl(url, "abmhub.xyz"));
+}
+
+function BrandIcon({ src, label }: { src: string; label: string }) {
+  return (
+    <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={`${label} logo`} className="h-4 w-4 object-contain" loading="lazy" />
+    </span>
+  );
+}
+
+function QuestBrandIcon({ platform, url }: { platform: string; url: string }) {
+  return <BrandIcon src={getQuestIconUrl(platform, url)} label={platform} />;
+}
+
+function DetailBox({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: React.ReactNode;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
+      <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-600">{label}</div>
+      <div className={`text-sm font-extrabold ${highlight ? "text-emerald-300" : "text-white"}`}>{value}</div>
+    </div>
+  );
+}
+
 export default async function AirdropProjectPage({ params }: PageProps) {
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
@@ -160,89 +215,90 @@ export default async function AirdropProjectPage({ params }: PageProps) {
       <Header />
 
       <main className="app-shell">
-        <article className="glass rounded-[28px] p-8 max-sm:rounded-[20px] max-sm:p-5">
-          <header className="mb-8 flex items-start gap-5 max-sm:gap-3">
-            <div className="project-logo-frame grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-[22px] border border-slate-700/80 bg-black/45 font-black text-white max-sm:h-14 max-sm:w-14 max-sm:rounded-2xl">
+        <article className="project-seo-page mx-auto max-w-[1040px] rounded-[28px] border border-white/15 bg-[#0b1220] p-6 max-sm:rounded-[20px] max-sm:p-4">
+          <header className="mb-5 flex items-start gap-4 max-sm:gap-3">
+            <div className="project-logo-frame grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[18px] border border-slate-700/80 bg-black/45 font-extrabold text-white shadow-none max-sm:h-12 max-sm:w-12 max-sm:rounded-2xl">
               {project.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={project.logo_url} alt={`${project.project_name} logo`} className="h-full w-full object-cover" loading="eager" decoding="async" />
               ) : (
-                project.project_name.slice(0, 2).toUpperCase()
+                initials(project.project_name)
               )}
             </div>
-            <div>
-              <p className="mb-2 text-sm font-extrabold text-blue-300">Airdrop Project Details</p>
-              <h1 className="text-4xl font-black tracking-tight max-sm:text-3xl">
+            <div className="min-w-0">
+              <p className="mb-1 text-xs font-extrabold text-blue-300">Airdrop Project Details</p>
+              <h1 className="break-words text-3xl font-extrabold tracking-tight max-sm:text-2xl">
                 {project.project_name} Airdrop, Funding, Tasks & Project Details
               </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-400">{projectDescription(project)}</p>
-              <p className="mt-3 text-xs text-slate-500">Last updated: {new Date(updatedDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
+              <a href={xUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-sm text-blue-300 hover:underline">
+                {project.x_handle}
+                <ExternalLink size={13} />
+              </a>
             </div>
           </header>
 
-          <section className="mb-6 rounded-3xl border border-white/10 bg-[#111827] p-5">
-            <h2 className="mb-3 text-xl font-black">Summary</h2>
-            <p className="text-sm leading-7 text-slate-300">
-              {project.summary || `${project.project_name} is listed on ABM Hub as a Web3 airdrop project. This page is designed to help users review important project information before visiting official links or completing tasks.`}
+          <section className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+            <div className="mb-2 text-sm font-extrabold">Summary</div>
+            <p className="text-sm leading-relaxed text-slate-400">
+              {project.summary || `${project.project_name} is listed on ABM Hub as a Web3 airdrop project. This page helps users review important project information before visiting official links or completing tasks.`}
             </p>
+            <p className="mt-3 text-xs text-slate-600">Last updated: {new Date(updatedDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
           </section>
 
-          <section className="mb-6 grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
-            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5">
-              <h2 className="mb-4 text-xl font-black">Project Details</h2>
-              <dl className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Funding</dt>
-                  <dd className="mt-2 font-black text-emerald-300">{money(project.funding_musd)}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Backed by</dt>
-                  <dd className="mt-2 font-black">{project.backed_by || "Not disclosed"}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Phase</dt>
-                  <dd className="mt-2 font-black">{project.phase}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Status</dt>
-                  <dd className={`mt-2 font-black ${statusClass(project.status)}`}>{project.status}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Quest Type</dt>
-                  <dd className="mt-2 font-black">{questLabel}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Chain</dt>
-                  <dd className="mt-2 font-black">{project.chain}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Cost</dt>
-                  <dd className="mt-2 font-black">{project.cost}</dd>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-4">
-                  <dt className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">Category</dt>
-                  <dd className="mt-2 font-black">{project.category}</dd>
-                </div>
-              </dl>
+          <section className="mb-5 grid gap-5 lg:grid-cols-[1.15fr_.85fr] max-sm:gap-4">
+            <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+              <h2 className="mb-4 text-base font-extrabold tracking-tight">Project Details</h2>
+              <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                <DetailBox label="Funding" value={money(project.funding_musd)} highlight />
+                <DetailBox label="Backed by" value={project.backed_by || "Not disclosed"} />
+                <DetailBox label="Phase" value={project.phase} />
+                <DetailBox label="Status" value={<span className={statusClass(project.status)}>{project.status}</span>} />
+                <DetailBox label="Quest Type" value={questLabel} />
+                <DetailBox label="Chain" value={project.chain} />
+                <DetailBox label="Cost" value={project.cost} />
+                <DetailBox label="Category" value={project.category} />
+              </div>
             </div>
 
-            <aside className="rounded-3xl border border-white/10 bg-[#111827] p-5">
-              <h2 className="mb-4 text-xl font-black">Official Links</h2>
+            <aside className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+              <h2 className="mb-4 text-base font-extrabold tracking-tight">Official Links</h2>
               <div className="grid gap-3">
-                <a href={xUrl} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">Follow on X</a>
-                {project.discord_url ? <a href={project.discord_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">Join Discord</a> : null}
-                {project.website_url ? <a href={project.website_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">Visit Website</a> : null}
-                {project.claim_airdrop_url ? <a href={project.claim_airdrop_url} target="_blank" rel="noreferrer" className="btn justify-start">Claim Airdrop</a> : null}
+                <a href={xUrl} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                  <BrandIcon src={faviconUrl("x.com")} label="X" />
+                  Follow on X
+                </a>
+
+                {project.discord_url ? (
+                  <a href={project.discord_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                    <BrandIcon src={faviconUrl("discord.com")} label="Discord" />
+                    Join Discord
+                  </a>
+                ) : null}
+
+                {project.website_url ? (
+                  <a href={project.website_url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                    <Globe size={18} />
+                    Visit Website
+                  </a>
+                ) : null}
+
+                {project.claim_airdrop_url ? (
+                  <a href={project.claim_airdrop_url} target="_blank" rel="noreferrer" className="btn justify-start">
+                    <Gift size={18} />
+                    Claim Airdrop
+                  </a>
+                ) : null}
               </div>
             </aside>
           </section>
 
-          <section className="mb-6 rounded-3xl border border-white/10 bg-[#111827] p-5">
-            <h2 className="mb-4 text-xl font-black">Quest Links</h2>
+          <section className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+            <h2 className="mb-4 text-base font-extrabold tracking-tight">Quest Links</h2>
             {questLinks.length ? (
               <div className="grid gap-3 md:grid-cols-2">
-                {questLinks.map((link, index) => (
-                  <a key={`${link.url}-${index}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                {questLinks.map((link) => (
+                  <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer" className="btn btn-ghost justify-start">
+                    <QuestBrandIcon platform={link.platform} url={link.url} />
                     Open {link.platform}
                   </a>
                 ))}
@@ -252,8 +308,8 @@ export default async function AirdropProjectPage({ params }: PageProps) {
             )}
           </section>
 
-          <section className="mb-6 rounded-3xl border border-white/10 bg-[#111827] p-5">
-            <h2 className="mb-4 text-xl font-black">{project.project_name} Tasks</h2>
+          <section className="mb-5 rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
+            <h2 className="mb-3 text-base font-extrabold tracking-tight">Tasks</h2>
             {tasks.length ? (
               <ol className="grid list-decimal gap-3 pl-5 text-sm leading-7 text-slate-300">
                 {tasks.map((task, index) => (
@@ -261,12 +317,12 @@ export default async function AirdropProjectPage({ params }: PageProps) {
                 ))}
               </ol>
             ) : (
-              <p className="text-sm text-slate-400">No tasks have been added yet. Check the official links for the latest project instructions.</p>
+              <p className="text-sm text-slate-400">No tasks have been added yet. Check official links for the latest project instructions.</p>
             )}
           </section>
 
-          <section className="rounded-3xl border border-amber-400/15 bg-amber-400/10 p-5">
-            <h2 className="mb-3 text-xl font-black">Airdrop Disclaimer</h2>
+          <section className="rounded-3xl border border-amber-400/15 bg-amber-400/10 p-5 max-sm:rounded-2xl max-sm:p-4">
+            <h2 className="mb-3 text-base font-extrabold tracking-tight">Airdrop Disclaimer</h2>
             <p className="text-sm leading-7 text-amber-50/80">
               ABM Hub provides informational airdrop research only. Airdrops, rewards, token allocations and eligibility are not guaranteed.
               Always verify official project links, avoid sharing seed phrases and use your own research before completing tasks.

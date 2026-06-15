@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { ProjectCard } from "@/components/ProjectCard";
-import { ProjectDetails } from "@/components/ProjectDetails";
 import { Toast } from "@/components/Toast";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
@@ -18,7 +17,6 @@ type Section = "airdrop" | "trading" | "favorites";
 export default function PublicHomePage() {
   const [section, setSection] = useState<Section>("airdrop");
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [query, setQuery] = useState("");
   const [costFilter, setCostFilter] = useState<CostFilter>("all");
   const [loading, setLoading] = useState(true);
@@ -27,7 +25,6 @@ export default function PublicHomePage() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [authOpen, setAuthOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const modalHistoryActiveRef = useRef(false);
 
   function showToast(message: string) {
     setToast(message);
@@ -107,37 +104,6 @@ export default function PublicHomePage() {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  useEffect(() => {
-    if (!selectedProject || typeof window === "undefined") return;
-
-    if (!modalHistoryActiveRef.current) {
-      window.history.pushState({ ...(window.history.state || {}), abmhubProjectModal: true }, "", window.location.href);
-      modalHistoryActiveRef.current = true;
-    }
-
-    const handlePopState = () => {
-      if (modalHistoryActiveRef.current) {
-        modalHistoryActiveRef.current = false;
-        setSelectedProject(null);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [selectedProject]);
-
-  function closeProjectDetails() {
-    if (modalHistoryActiveRef.current && typeof window !== "undefined") {
-      window.history.back();
-      return;
-    }
-
-    setSelectedProject(null);
-  }
 
 
   async function logout() {
@@ -300,7 +266,6 @@ export default function PublicHomePage() {
                   <ProjectCard
                     key={project.id}
                     project={project}
-                    onOpen={setSelectedProject}
                     isFavorite={favoriteIds.has(project.id)}
                     onToggleFavorite={toggleFavorite}
                   />
@@ -340,7 +305,6 @@ export default function PublicHomePage() {
 
       <Footer />
 
-      <ProjectDetails project={selectedProject} onClose={closeProjectDetails} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => showToast("Login successful")} />
     </>
   );

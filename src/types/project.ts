@@ -35,6 +35,7 @@ export type Project = {
   id: string;
   project_name: string;
   project_title: string | null;
+  project_slug: string | null;
   x_handle: string;
   funding_musd: number | null;
   backed_by: string;

@@ -18,6 +18,7 @@ type FormState = {
   id?: string;
   project_name: string;
   project_title: string;
+  project_slug: string;
   x_handle: string;
   funding_musd: string;
   backed_by: string;
@@ -41,6 +42,7 @@ type FormState = {
 const emptyForm: FormState = {
   project_name: "",
   project_title: "",
+  project_slug: "",
   x_handle: "",
   funding_musd: "",
   backed_by: "",
@@ -60,6 +62,17 @@ const emptyForm: FormState = {
   summary: "",
   tasks: "",
 };
+
+
+function makeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 90);
+}
 
 function getQuestUrls(project: Project) {
   const links = Array.isArray(project.quest_links) ? project.quest_links : [];
@@ -218,6 +231,7 @@ export default function AdminPage() {
       id: project.id,
       project_name: project.project_name,
       project_title: project.project_title || `${project.project_name} Airdrop Details Funding`,
+      project_slug: project.project_slug || makeSlug(project.project_title || `${project.project_name} Airdrop Details Funding`),
       x_handle: project.x_handle,
       funding_musd: String(project.funding_musd || ""),
       backed_by: project.backed_by,
@@ -271,6 +285,7 @@ export default function AdminPage() {
     const payload = {
       project_name: form.project_name.trim(),
       project_title: form.project_title.trim() || `${form.project_name.trim()} Airdrop Details Funding`,
+      project_slug: makeSlug(form.project_slug || form.project_title || `${form.project_name.trim()} Airdrop Details Funding`),
       x_handle: form.x_handle.trim().startsWith("@") ? form.x_handle.trim() : `@${form.x_handle.trim()}`,
       funding_musd: Number(form.funding_musd || 0),
       backed_by: form.backed_by.trim(),
@@ -405,6 +420,19 @@ export default function AdminPage() {
                 onChange={(e) => updateForm("project_title", e.target.value)}
                 placeholder="OneFootball Airdrop Details Funding"
               />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Permanent URL slug
+              <input
+                className="form-field"
+                value={form.project_slug}
+                onChange={(e) => updateForm("project_slug", makeSlug(e.target.value))}
+                placeholder="onefootball-airdrop-details-funding"
+              />
+              <span className="text-xs leading-relaxed text-amber-200/75">
+                Keep this same after Google indexes it. Editing Project title will not change this URL.
+              </span>
             </label>
 
             <label className="grid gap-2 text-sm text-slate-300">

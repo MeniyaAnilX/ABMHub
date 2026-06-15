@@ -23,7 +23,10 @@ export function seoTitleText(project: Pick<Project, "project_name" | "project_ti
   return customTitle || `${project.project_name} Airdrop Details Funding`;
 }
 
-export function projectSlug(project: Pick<Project, "project_name" | "project_title" | "id">) {
+export function projectSlug(project: Pick<Project, "project_name" | "project_title" | "project_slug" | "id">) {
+  const permanentSlug = slugify(project.project_slug || "");
+  if (permanentSlug) return permanentSlug;
+
   const slug = slugify(seoTitleText(project));
   return slug || project.id;
 }

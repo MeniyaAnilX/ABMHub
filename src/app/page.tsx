@@ -5,7 +5,6 @@ import type { User } from "@supabase/supabase-js";
 import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { ProjectCard } from "@/components/ProjectCard";
-import { Toast } from "@/components/Toast";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import type { Project } from "@/types/project";
@@ -24,13 +23,6 @@ export default function PublicHomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [authOpen, setAuthOpen] = useState(false);
-  const [toast, setToast] = useState("");
-
-  function showToast(message: string) {
-    setToast(message);
-    setTimeout(() => setToast(""), 2400);
-  }
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
@@ -108,14 +100,12 @@ export default function PublicHomePage() {
 
   async function logout() {
     await supabase.auth.signOut();
-    showToast("Logged out");
-  }
+}
 
   function openFavoritesSection() {
     if (!user) {
       setAuthOpen(true);
-      showToast("Sign up or login to view your favorites.");
-      return;
+return;
     }
 
     setSection("favorites");
@@ -124,8 +114,7 @@ export default function PublicHomePage() {
   async function toggleFavorite(project: Project) {
     if (!user) {
       setAuthOpen(true);
-      showToast("Sign up or login to save favorite projects.");
-      return;
+return;
     }
 
     const alreadySaved = favoriteIds.has(project.id);
@@ -144,13 +133,10 @@ export default function PublicHomePage() {
         .eq("project_id", project.id);
 
       if (error) {
-        showToast(error.message);
-        loadFavorites(user.id);
+loadFavorites(user.id);
         return;
       }
-
-      showToast("Removed from favorites");
-      return;
+return;
     }
 
     setFavoriteIds((current) => new Set(current).add(project.id));
@@ -161,13 +147,10 @@ export default function PublicHomePage() {
     });
 
     if (error) {
-      showToast(error.message);
-      loadFavorites(user.id);
+loadFavorites(user.id);
       return;
     }
-
-    showToast("Added to favorites");
-  }
+}
 
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase();
@@ -204,10 +187,7 @@ export default function PublicHomePage() {
         onOpenAuth={() => setAuthOpen(true)}
         onLogout={logout}
       />
-
-      <Toast message={toast} />
-
-      <main className="app-shell">
+<main className="app-shell">
         <section className="mb-5 flex max-w-full gap-3 overflow-x-auto pb-1">
           <button className={`section-tab ${section === "airdrop" ? "active" : ""}`} onClick={() => setSection("airdrop")}>
             <Rocket size={15} className="inline-block" /> Airdrop
@@ -305,7 +285,7 @@ export default function PublicHomePage() {
 
       <Footer />
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => showToast("Login successful")} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => {}} />
     </>
   );
 }

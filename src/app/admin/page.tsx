@@ -17,6 +17,7 @@ const costs: Cost[] = ["Free", "Low Gas", "Paid"];
 type FormState = {
   id?: string;
   project_name: string;
+  project_title: string;
   x_handle: string;
   funding_musd: string;
   backed_by: string;
@@ -39,6 +40,7 @@ type FormState = {
 
 const emptyForm: FormState = {
   project_name: "",
+  project_title: "",
   x_handle: "",
   funding_musd: "",
   backed_by: "",
@@ -267,6 +269,7 @@ export default function AdminPage() {
 
     const payload = {
       project_name: form.project_name.trim(),
+      project_title: form.project_title.trim() || `${form.project_name.trim()} Airdrop Details Funding`,
       x_handle: form.x_handle.trim().startsWith("@") ? form.x_handle.trim() : `@${form.x_handle.trim()}`,
       funding_musd: Number(form.funding_musd || 0),
       backed_by: form.backed_by.trim(),
@@ -391,6 +394,16 @@ export default function AdminPage() {
             <label className="grid gap-2 text-sm text-slate-300">
               Project name *
               <input className="form-field" value={form.project_name} onChange={(e) => updateForm("project_name", e.target.value)} required />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Project title / SEO title
+              <input
+                className="form-field"
+                value={form.project_title}
+                onChange={(e) => updateForm("project_title", e.target.value)}
+                placeholder="OneFootball Airdrop Details Funding"
+              />
             </label>
 
             <label className="grid gap-2 text-sm text-slate-300">

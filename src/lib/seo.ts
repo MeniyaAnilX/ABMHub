@@ -18,8 +18,13 @@ export function slugify(value: string) {
     .slice(0, 90);
 }
 
-export function projectSlug(project: Pick<Project, "project_name" | "id">) {
-  const slug = slugify(project.project_name);
+export function seoTitleText(project: Pick<Project, "project_name" | "project_title">) {
+  const customTitle = (project.project_title || "").trim();
+  return customTitle || `${project.project_name} Airdrop Details Funding`;
+}
+
+export function projectSlug(project: Pick<Project, "project_name" | "project_title" | "id">) {
+  const slug = slugify(seoTitleText(project));
   return slug || project.id;
 }
 
@@ -53,13 +58,15 @@ export function projectDescription(project: Project) {
   const quest = project.quest_platform || "quests";
   const summary = stripRichText(project.summary || "");
 
-  const description = `${project.project_name} airdrop details including funding ${funding}, backers ${backers}, ${chain} chain, ${quest} quest type, ${status} status, tasks and official links. ${summary}`;
+  const title = seoTitleText(project);
+  const description = `${title} including funding ${funding}, backers ${backers}, ${chain} chain, ${quest} quest type, ${status} status, tasks and official links. ${summary}`;
 
   return description.replace(/\s+/g, " ").slice(0, 158);
 }
 
 export function projectTitle(project: Project) {
-  return `${project.project_name} Airdrop, Funding, Tasks & Project Details | ABM Hub`;
+  const title = seoTitleText(project);
+  return `${title} | ABM Hub`;
 }
 
 export function projectKeywords(project: Project) {

@@ -38,7 +38,17 @@ export function ProjectCard({
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const detailsUrl = `/airdrops/${projectSlug(project)}`;
   return (
-    <article className="glass smooth-card flex min-h-[318px] flex-col gap-3 rounded-[20px] p-[18px] max-sm:min-h-0 max-sm:rounded-[18px] max-sm:p-4">
+    <article
+      onClick={() => {
+        window.location.href = detailsUrl;
+      }}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") window.location.href = detailsUrl;
+      }}
+      className="glass smooth-card flex min-h-[318px] cursor-pointer flex-col gap-3 rounded-[20px] p-[18px] max-sm:min-h-0 max-sm:rounded-[18px] max-sm:p-4"
+    >
       <div className="flex items-start gap-3 max-[380px]:gap-2">
         <div className="grid h-[50px] w-[50px] shrink-0 place-items-center overflow-hidden rounded-[15px] border border-slate-700/80 bg-black/45 font-extrabold text-white shadow-none project-logo-frame max-sm:h-12 max-sm:w-12">
           {project.logo_url ? (
@@ -119,7 +129,7 @@ export function ProjectCard({
           </span>
         </div>
 
-        <Link href={detailsUrl} className="btn w-full justify-center">
+        <Link href={detailsUrl} className="btn w-full justify-center" onClick={(event) => event.stopPropagation()}>
           Read Project Details
         </Link>
       </div>

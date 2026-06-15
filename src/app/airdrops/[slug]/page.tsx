@@ -4,7 +4,7 @@ import { ExternalLink, Gift, Globe } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { getProjectBySlug, getSeoProjects } from "@/lib/projectsServer";
-import { absoluteUrl, money, projectDescription, projectKeywords, projectSlug, projectTasksText, projectTitle } from "@/lib/seo";
+import { absoluteUrl, money, projectDescription, projectKeywords, projectSlug, projectTasksText, projectTitle, seoTitleText } from "@/lib/seo";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
 
 export const revalidate = 3600;
@@ -149,6 +149,7 @@ export default async function AirdropProjectPage({ params }: PageProps) {
   const tasks = projectTasksText(project);
   const updatedDate = project.updated_at || project.created_at;
   const pageUrl = absoluteUrl(path);
+  const projectSeoTitle = seoTitleText(project);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -228,7 +229,7 @@ export default async function AirdropProjectPage({ params }: PageProps) {
             <div className="min-w-0">
               <p className="mb-1 text-xs font-extrabold text-blue-300">Airdrop Project Details</p>
               <h1 className="break-words text-3xl font-extrabold tracking-tight max-sm:text-2xl">
-                {project.project_name} Airdrop, Funding, Tasks & Project Details
+                {projectSeoTitle}
               </h1>
               <a href={xUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-sm text-blue-300 hover:underline">
                 {project.x_handle}

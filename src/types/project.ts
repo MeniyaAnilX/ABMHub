@@ -34,6 +34,7 @@ export type QuestLink = {
 export type Project = {
   id: string;
   project_name: string;
+  project_title: string | null;
   x_handle: string;
   funding_musd: number | null;
   backed_by: string;

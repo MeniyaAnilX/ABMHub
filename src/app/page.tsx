@@ -226,12 +226,6 @@ export default function PublicHomePage() {
       return !text || searchText.includes(text);
     });
 
-    list.sort((a, b) => {
-      if (sort === "funding") return Number(b.funding_musd || 0) - Number(a.funding_musd || 0);
-      if (sort === "az") return a.project_name.localeCompare(b.project_name);
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
     return list;
   }, [projects, query, section, favoriteIds, costFilter]);
 

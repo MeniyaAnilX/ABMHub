@@ -59,14 +59,10 @@ dist/
 .env.*.local
 .vercel/
 config.txt
+*.bat
 *.log
 *.pem
-.DS_Store
-*.bat
 *.sql
-ABMFIX_*.md
-README_ABMHUB.md
-GITHUB_CLEAN_CHECKLIST.txt
+.DS_Store
 _abmhub_push_backup_*/
 _abmhub_safe_backup_*/
-ABMHub_push_log.txt

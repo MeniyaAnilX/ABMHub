@@ -595,3 +595,17 @@ body[style*="position: fixed"] {
 .project-seo-page .task-heading {
   font-weight: 900;
 }
+
+
+/* ABMHub v62: compact task numbering + rich task colors */
+.task-line {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 3px;
+  align-items: start;
+}
+
+.task-number {
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}

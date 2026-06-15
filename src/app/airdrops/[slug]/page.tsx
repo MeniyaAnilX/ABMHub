@@ -4,7 +4,7 @@ import { ExternalLink, Gift, Globe } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { getProjectBySlug, getSeoProjects } from "@/lib/projectsServer";
-import { absoluteUrl, money, projectDescription, projectKeywords, projectSlug, projectTasksText, projectTitle, seoTitleText } from "@/lib/seo";
+import { absoluteUrl, money, projectDescription, projectKeywords, projectSlug, projectTitle, seoTitleText } from "@/lib/seo";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
 
 export const dynamic = "force-dynamic";
@@ -171,20 +171,20 @@ function renderTaskItems(tasks: string[]) {
 
     if (isBullet) {
       return (
-        <div key={`task-bullet-${index}`} className="flex gap-2 text-sm leading-7 text-slate-300">
-          <span className="mt-[1px] text-slate-500">•</span>
+        <p key={`task-bullet-${index}`} className="task-line text-sm leading-7 text-slate-300">
+          <span className="task-number text-slate-500">•</span>
           <span>{renderRichText(normalized.replace(/^[•\-]\s+/, ""), `task-bullet-${index}`)}</span>
-        </div>
+        </p>
       );
     }
 
     number += 1;
 
     return (
-      <div key={`task-${index}`} className="flex gap-2 text-sm leading-7 text-slate-300">
-        <span className="min-w-6 shrink-0 text-slate-400">{number}.</span>
+      <p key={`task-${index}`} className="task-line text-sm leading-7 text-slate-300">
+        <span className="task-number text-slate-400">{number}.</span>
         <span>{renderRichText(normalized, `task-${index}`)}</span>
-      </div>
+      </p>
     );
   });
 }
@@ -253,7 +253,7 @@ export default async function AirdropProjectPage({ params }: PageProps) {
   const xUrl = `https://x.com/${project.x_handle.replace("@", "")}`;
   const questLinks = getQuestLinks(project);
   const questLabel = getQuestLabel(project);
-  const tasks = projectTasksText(project);
+  const tasks = Array.isArray(project.tasks) ? project.tasks.filter(Boolean) : [];
   const updatedDate = project.updated_at || project.created_at;
   const pageUrl = absoluteUrl(path);
   const projectSeoTitle = seoTitleText(project);

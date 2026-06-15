@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.abmhub.xyz"),
   applicationName: "ABM Hub",
   title: {
-    default: "ABM Hub — Web3 Airdrop Projects, Funding & Tasks",
+    default: "ABM Hub — Web3 Projects Details",
     template: "%s | ABM Hub",
   },
   description: "Discover Web3 airdrop projects with funding, backers, chain, quest type, status, tasks and official links.",

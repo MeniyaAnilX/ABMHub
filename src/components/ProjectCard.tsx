@@ -21,6 +21,9 @@ const colorMap: Record<string, string> = {
   Mainnet: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
   Both: "bg-purple-500/15 text-purple-300 border-purple-500/25",
   Waitlist: "bg-amber-500/15 text-amber-300 border-amber-500/25",
+  Free: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
+  "Low Gas": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
+  Paid: "bg-rose-500/15 text-rose-300 border-rose-500/25",
 };
 
 function money(value: number | null) {
@@ -108,6 +111,10 @@ export function ProjectCard({
       </p>
 
       <div className="flex flex-wrap gap-2">
+        <span className={`badge ${colorMap[project.cost] || colorMap.Free}`}>
+          <Wallet size={13} />
+          {project.cost}
+        </span>
         <span className={`badge ${colorMap[project.phase] || colorMap.Testnet}`}>{project.phase}</span>
         <span className={`badge ${colorMap[project.status] || colorMap.Live}`}>{project.status}</span>
       </div>
@@ -128,13 +135,6 @@ export function ProjectCard({
       </div>
 
       <div className="mt-auto border-t border-white/10 pt-3">
-        <div className="mb-3 flex flex-wrap gap-2">
-          <span className="badge border-cyan-500/25 bg-cyan-500/15 text-cyan-300">
-            <Wallet size={13} />
-            {project.cost}
-          </span>
-        </div>
-
         <Link href={detailsUrl} prefetch className="btn w-full justify-center" onClick={(event) => event.stopPropagation()}>
           Read Project Details
         </Link>

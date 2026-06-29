@@ -7,7 +7,8 @@ function createServerSupabase() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing Supabase environment variables.");
+    console.error("Missing Supabase environment variables.");
+    return null;
   }
 
   return createClient(supabaseUrl, supabaseAnonKey, {
@@ -20,6 +21,8 @@ function createServerSupabase() {
 
 export async function getSeoProjects() {
   const supabase = createServerSupabase();
+
+  if (!supabase) return [] as Project[];
 
   const { data, error } = await supabase
     .from("projects")

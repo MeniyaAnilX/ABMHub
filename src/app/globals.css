@@ -27,6 +27,7 @@ html {
 
 body {
   min-height: 100vh;
+  font-family: "Quicksand", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text);
   background: linear-gradient(180deg, #060a13, #030712 78%);
   overflow-x: hidden;
@@ -608,4 +609,60 @@ body[style*="position: fixed"] {
 .task-number {
   text-align: left;
   font-variant-numeric: tabular-nums;
+}
+
+
+/* ABMHub v67 Ads */
+.abm-ad-slot {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.90), rgba(2, 6, 23, 0.82));
+  padding: 12px;
+}
+
+.abm-ad-label {
+  margin-bottom: 8px;
+  text-align: center;
+  color: rgba(148, 163, 184, 0.72);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.abm-ad-inner {
+  min-height: 90px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.abm-ad-inner iframe,
+.abm-ad-inner img,
+.abm-ad-inner embed,
+.abm-ad-inner object {
+  max-width: 100% !important;
+}
+
+.abm-ad-inner iframe {
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+.abm-ad-inner ins {
+  max-width: 100% !important;
+}
+
+@media (max-width: 760px) {
+  .abm-ad-slot {
+    border-radius: 18px;
+    padding: 10px;
+  }
+
+  .abm-ad-inner {
+    min-height: 75px;
+  }
 }

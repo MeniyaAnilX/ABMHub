@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AuthModal } from "@/components/AuthModal";
+import { AdSlot } from "@/components/AdSlot";
 import { Header } from "@/components/Header";
 import { ProjectCard } from "@/components/ProjectCard";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
+import { hasAdCode } from "@/lib/ads";
+import { useAdsSettings } from "@/hooks/useAdsSettings";
 import type { Project } from "@/types/project";
 import { Heart, LineChart, Rocket, Search, Star } from "lucide-react";
 
@@ -23,6 +26,7 @@ export default function PublicHomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [authOpen, setAuthOpen] = useState(false);
+  const { ads } = useAdsSettings();
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
@@ -179,6 +183,10 @@ loadFavorites(user.id);
     return list;
   }, [projects, query, section, favoriteIds, costFilter]);
 
+  const showAds = ads.enabled && (section === "airdrop" || section === "favorites");
+  const showHomeTopAd = showAds && hasAdCode(ads.home_top_code) && ads.max_ads_per_page >= 1;
+  const showHomeMiddleAd = showAds && hasAdCode(ads.home_middle_code) && ads.max_ads_per_page >= 2;
+
   return (
     <>
       <Header
@@ -234,6 +242,10 @@ loadFavorites(user.id);
               </div>
             </section>
 
+            {showHomeTopAd ? (
+              <AdSlot code={ads.home_top_code} slotId="home-top" className="mb-[18px]" />
+            ) : null}
+
             {loading ? (
               <div className="glass rounded-2xl p-10 text-center text-slate-400">Loading projects...</div>
             ) : errorMsg ? (
@@ -242,13 +254,19 @@ loadFavorites(user.id);
               </div>
             ) : filteredProjects.length ? (
               <section className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[15px] max-sm:grid-cols-1 max-sm:gap-3">
-                {filteredProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    isFavorite={favoriteIds.has(project.id)}
-                    onToggleFavorite={toggleFavorite}
-                  />
+                {filteredProjects.map((project, index) => (
+                  <Fragment key={project.id}>
+                    <ProjectCard
+                      project={project}
+                      isFavorite={favoriteIds.has(project.id)}
+                      onToggleFavorite={toggleFavorite}
+                    />
+                    {index === 5 && showHomeMiddleAd ? (
+                      <div className="col-span-full">
+                        <AdSlot code={ads.home_middle_code} slotId="home-middle" />
+                      </div>
+                    ) : null}
+                  </Fragment>
                 ))}
               </section>
             ) : section === "favorites" ? (

@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ExternalLink, Gift, Globe } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { AdSlot } from "@/components/AdSlot";
 import { Header } from "@/components/Header";
 import { getProjectBySlug, getSeoProjects } from "@/lib/projectsServer";
 import { absoluteUrl, money, projectDescription, projectKeywords, projectSlug, projectTitle, seoTitleText } from "@/lib/seo";
 import { getQuestLinks, getQuestLabel } from "@/lib/questLinks";
+import { getAdSettings } from "@/lib/adsServer";
+import { hasAdCode } from "@/lib/ads";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,7 +26,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const [project, adSettings] = await Promise.all([getProjectBySlug(slug), getAdSettings()]);
 
   if (!project) {
     return {
@@ -245,7 +248,7 @@ function DetailBox({
 
 export default async function AirdropProjectPage({ params }: PageProps) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const [project, adSettings] = await Promise.all([getProjectBySlug(slug), getAdSettings()]);
 
   if (!project) notFound();
 
@@ -257,6 +260,8 @@ export default async function AirdropProjectPage({ params }: PageProps) {
   const updatedDate = project.updated_at || project.created_at;
   const pageUrl = absoluteUrl(path);
   const projectSeoTitle = seoTitleText(project);
+  const showDetailTopAd = adSettings.enabled && hasAdCode(adSettings.detail_top_code) && adSettings.max_ads_per_page >= 1;
+  const showDetailBottomAd = adSettings.enabled && hasAdCode(adSettings.detail_bottom_code) && adSettings.max_ads_per_page >= 2;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -353,6 +358,10 @@ export default async function AirdropProjectPage({ params }: PageProps) {
             <p className="mt-3 text-xs text-slate-600">Last updated: {new Date(updatedDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
           </section>
 
+          {showDetailTopAd ? (
+            <AdSlot code={adSettings.detail_top_code} slotId="detail-top" className="mb-5" />
+          ) : null}
+
           <section className="mb-5 grid gap-5 lg:grid-cols-[1.15fr_.85fr] max-sm:gap-4">
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-5 max-sm:rounded-2xl max-sm:p-4">
               <h2 className="mb-4 text-base font-extrabold tracking-tight">Project Details</h2>
@@ -426,6 +435,10 @@ export default async function AirdropProjectPage({ params }: PageProps) {
               <p className="text-sm text-slate-400">No tasks have been added yet. Check official links for the latest project instructions.</p>
             )}
           </section>
+
+          {showDetailBottomAd ? (
+            <AdSlot code={adSettings.detail_bottom_code} slotId="detail-bottom" className="mb-5" />
+          ) : null}
 
           <section className="rounded-3xl border border-amber-400/15 bg-amber-400/10 p-5 max-sm:rounded-2xl max-sm:p-4">
             <h2 className="mb-3 text-base font-extrabold tracking-tight">Airdrop Disclaimer</h2>

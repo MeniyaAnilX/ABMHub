@@ -64,3 +64,17 @@ config.txt
 *.pem
 *.sql
 .DS_Store
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.local
+.env.*.local
+.vercel/
+config.txt
+*.bat
+*.log
+*.pem
+*.sql
+.DS_Store

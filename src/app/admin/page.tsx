@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Toast } from "@/components/Toast";
+import { AdminAdsSettings } from "@/components/AdminAdsSettings";
 import { supabase } from "@/lib/supabase";
 import type { Category, Chain, Cost, Project, ProjectPhase, ProjectStatus, QuestLink } from "@/types/project";
 import { LogOut, Plus, Save, Search, Trash2, Upload } from "lucide-react";
@@ -399,6 +400,8 @@ export default function AdminPage() {
         </div>
 
         {message && <div className="glass mb-4 rounded-2xl p-4 text-sm text-cyan-200">{message}</div>}
+
+        <AdminAdsSettings />
 
         <form onSubmit={saveProject} className="glass mb-6 rounded-3xl p-5 max-sm:rounded-[20px] max-sm:p-4">
           <div className="mb-4 flex items-center gap-2">

@@ -30,3 +30,8 @@ admin@abmhub.xyz
 
 Ads SQL:
 Run ABMHub_Ads_Settings_SQL_v67.sql in Supabase if not already done.
+
+
+v70 A-ADS Verification Fix:
+- Added /ads-verify page for server-rendered ad verification.
+- AdSlot now includes ad code in initial HTML.

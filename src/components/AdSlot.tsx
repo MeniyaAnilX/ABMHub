@@ -10,21 +10,23 @@ type AdSlotProps = {
   className?: string;
 };
 
+/**
+ * Server/initial HTML friendly ad renderer.
+ *
+ * Important for A-ADS verification:
+ * - The iframe/script code must be present in the page HTML, not only injected after React useEffect.
+ * - Bots may check the static HTML of the exact URL.
+ *
+ * The same code is rendered with dangerouslySetInnerHTML for initial markup,
+ * then scripts are re-mounted after hydration so script-based networks still run.
+ */
 export function AdSlot({ code, enabled = true, label = "Advertisement", slotId = "ad", className = "" }: AdSlotProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cleanCode = useMemo(() => (code || "").trim(), [code]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    if (!enabled || !cleanCode) return;
-
-    const template = document.createElement("template");
-    template.innerHTML = cleanCode;
-    container.appendChild(template.content.cloneNode(true));
+    if (!container || !enabled || !cleanCode) return;
 
     const scripts = Array.from(container.querySelectorAll("script"));
 
@@ -46,7 +48,11 @@ export function AdSlot({ code, enabled = true, label = "Advertisement", slotId =
   return (
     <aside className={`abm-ad-slot ${className}`} data-ad-slot={slotId}>
       <div className="abm-ad-label">{label}</div>
-      <div ref={containerRef} className="abm-ad-inner" />
+      <div
+        ref={containerRef}
+        className="abm-ad-inner"
+        dangerouslySetInnerHTML={{ __html: cleanCode }}
+      />
     </aside>
   );
 }

@@ -1,6 +1,6 @@
 {
   "name": "abmhub",
-  "version": "1.0.67",
+  "version": "1.0.68",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -9,22 +9,26 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "latest",
-    "lucide-react": "latest",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "@supabase/supabase-js": "2.108.2",
+    "lucide-react": "1.22.0",
+    "next": "16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "autoprefixer": "latest",
-    "eslint": "latest",
-    "eslint-config-next": "latest",
-    "postcss": "latest",
-    "tailwindcss": "latest",
-    "typescript": "latest",
-    "@tailwindcss/postcss": "latest"
-  }
+    "@tailwindcss/postcss": "4.3.1",
+    "@types/node": "25.0.2",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.7",
+    "autoprefixer": "10.4.23",
+    "eslint": "9.40.0",
+    "eslint-config-next": "16.2.9",
+    "postcss": "8.5.6",
+    "tailwindcss": "4.3.1",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.9.0"
 }

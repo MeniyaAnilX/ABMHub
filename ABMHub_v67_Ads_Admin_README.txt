@@ -38,3 +38,10 @@ Keep Max Ads Per Page = 1 or 2 only.
 3. Run Supabase SQL if not already done.
 4. Open /admin -> Ads Settings -> paste code -> Save Ads.
 5. Click A-ADS verify after code appears on homepage.
+
+
+v68 Vercel Install Fix:
+- Removed bad sandbox-generated package-lock.json.
+- Added .npmrc forcing public npm registry.
+- Pinned dependency versions.
+- Added vercel.json.
